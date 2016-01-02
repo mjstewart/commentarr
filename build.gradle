@@ -1,0 +1,32 @@
+group 'commentarr'
+version '1.0-SNAPSHOT'
+
+apply plugin: 'java'
+apply plugin: 'war'
+
+sourceCompatibility = 1.8
+
+project.ext {
+    wildflyHome = '/opt/wildfly-9.0.2.Final'
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile 'javax:javaee-api:7.0'
+    compile 'org.glassfish:javax.json:1.0.4'
+    compile 'javax.json:javax.json-api:1.0'
+    compile 'org.mongodb:mongodb-driver:3.0.4'
+    compile 'org.mongodb.morphia:morphia:1.0.0-rc0'
+    compile 'com.fasterxml.jackson.core:jackson-core:2.7.0-rc2'
+    compile 'com.fasterxml.jackson.core:jackson-databind:2.7.0-rc2'
+    compile 'com.fasterxml.jackson.core:jackson-annotations:2.7.0-rc2'
+}
+
+war {
+    archiveName 'commentarr.war'
+    exclude('node_modules')
+}
+

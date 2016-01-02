@@ -1,0 +1,10 @@
+# IntelliJ
+.idea/
+/out/*
+*.iml
+/build/*
+
+node_modules
+.gradle
+
+src/main/webapp/build
