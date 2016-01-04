@@ -12,7 +12,7 @@ import java.io.IOException;
 import java.util.List;
 
 /**
- * Created by matt on 31/December/2015.
+ * Created by Matt Stewart on 02/January/2016.
  */
 public class CommentEventHandler {
     private final CommentSessionHandler sessionHandler;
@@ -33,7 +33,9 @@ public class CommentEventHandler {
      */
     public void onSubscribeComments(Session session) {
         sessionHandler.addCommentSubscriber(session);
+        System.out.println("calling getAll query");
         List<Comment> comments = repository.getAll();
+        System.out.println(comments);
         String commentsJson = toJSONString(comments);
         System.out.println("onSubscribeComments -- comments sending back to client are");
         System.out.println(commentsJson);
@@ -53,11 +55,11 @@ public class CommentEventHandler {
      * all registered comment subscribers including the session who created the comment.
      *
      * @param session the client session to send response back to
-     * @param jsonCommentString the json string sent from the client containing the new comment
+     * @param data the comment as a JsonObject
      */
-    public void onCommentCreate(Session session, String jsonCommentString) {
+    public void onCommentCreate(Session session, JsonObject data) {
         try {
-            Comment comment = objectMapper.readValue(jsonCommentString, Comment.class);
+            Comment comment = objectMapper.readValue(data.toString(), Comment.class);
             // validate here I guess?
 
             System.out.println("CommentEventHandler");
@@ -80,13 +82,41 @@ public class CommentEventHandler {
                 sessionHandler.sendMessage(session, commentCreatedReply.toString());
                 sessionHandler.sendToCommentSubscribers(addCommentReply.toString());
             } else {
-                sendError(session, "comment create", "Error saving to database, try again");
+                sendError(session, "comment create", "Unable to save to database, try again");
             }
         } catch (IOException e) {
-            sendError(session, "comment create", "Error with data format sent from client to server");
+            sendError(session, "comment create", "Invalid data format sent from client to server");
         }
     }
 
+    /**
+     *
+     * @param session
+     * @param data JsonObject containing 2 keys, updateField and comment which is an object type
+     */
+    public void onUpdateComment(Session session, JsonObject data) {
+        try {
+            Comment comment = objectMapper.readValue(data.getJsonObject("comment").toString(), Comment.class);
+            System.out.println("in onUpdateComment");
+            System.out.println(comment);
+            if (repository.update(comment)) {
+                JsonObject commentUpdatedReply = Json.createObjectBuilder()
+                        .add("event", "comment update")
+                        .add("comment", toJSONString(comment))
+                        .build();
+                sessionHandler.sendToCommentSubscribers(commentUpdatedReply.toString());
+            } else {
+                // notify original updater comment cant be updated
+                JsonObject commentUpdatedReply = Json.createObjectBuilder()
+                        .add("event", "error")
+                        .add("errorEvent", "comment update")
+                        .build();
+                sessionHandler.sendMessage(session, commentUpdatedReply.toString());
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
 
     public static String toJSONString(Object o) {
@@ -107,4 +137,6 @@ public class CommentEventHandler {
                 .build();
         sessionHandler.sendMessage(session, errorReply.toString());
     }
+
+
 }

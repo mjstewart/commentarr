@@ -6,8 +6,8 @@ class CommentList extends React.Component {
        // console.log("CommentList render");
         const {comments} = this.props;
         return (
-            <div className="panel panel-primary">
-                <div className="panel-heading">
+            <div className="panel panel-primary core-border">
+                <div className="panel-heading core-heading">
                     <h3>Comments ({this.props.comments.length})</h3>
                 </div>
                 <div className="panel-body">

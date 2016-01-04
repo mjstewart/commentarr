@@ -51,7 +51,7 @@ class Socket {
 
     onClose() {
         console.log("client onClose");
-        alert("client onclose");
+        // alert("client onclose");
         this.ee.emit('disconnect');
     }
 

@@ -1,6 +1,5 @@
 package domain;
 
-import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Entity;
@@ -9,10 +8,12 @@ import org.mongodb.morphia.annotations.Id;
 import java.util.Date;
 
 /**
- * Object -> json: Jackson uses the name after get as the keys in the json object.
- * json -> Object: Jackson uses the name after set as the method to call to fill the correct java object fields.
+ * Comment POJO that is used by Jackson and Morphia
  *
- * Created by matt on 02/January/2016.
+ * Object -> json: Jackson uses XXX after getXXX as the key in the json object.
+ * json -> Object: Jackson uses XXX name after setXXX as the method to call to fill the correct java object fields.
+ *
+ * Created by Matt Stewart on 02/January/2016.
  */
 @Entity("comments")
 public class Comment {
@@ -25,6 +26,7 @@ public class Comment {
     private int voteCount;
     private int reports;
     private Date dateCreated;
+    private Date dateLastUpdated;
 
     /**
      * For jackson Object->json parsing as we only want the id property to be returned, not the entire ObjectId.
@@ -40,56 +42,62 @@ public class Comment {
         return id;
     }
 
-    public void setId(ObjectId id) {
-        this.id = id;
-    }
-
     public String getAuthor() {
         return author;
-    }
-
-    public void setAuthor(String author) {
-        this.author = author;
     }
 
     public String getTitle() {
         return title;
     }
 
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
     public String getMessage() {
         return message;
-    }
-
-    public void setMessage(String message) {
-        this.message = message;
     }
 
     public int getVoteCount() {
         return voteCount;
     }
 
-    public void setVoteCount(int voteCount) {
-        this.voteCount = voteCount;
-    }
-
     public int getReports() {
         return reports;
-    }
-
-    public void setReports(int reports) {
-        this.reports = reports;
     }
 
     public Date getDateCreated() {
         return dateCreated;
     }
 
+    public Date getDateLastUpdated() { return dateLastUpdated; }
+
+    public void setId(ObjectId id) {
+        this.id = id;
+    }
+
+    public void setAuthor(String author) {
+        this.author = author;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
+    }
+
+    public void setVoteCount(int voteCount) {
+        this.voteCount = voteCount;
+    }
+
+    public void setReports(int reports) {
+        this.reports = reports;
+    }
+
     public void setDateCreated(Date dateCreated) {
         this.dateCreated = dateCreated;
+    }
+
+    public void setDateLastUpdated(Date dateLastUpdated) {
+        this.dateLastUpdated = dateLastUpdated;
     }
 
     @Override
@@ -102,6 +110,7 @@ public class Comment {
                 ", voteCount=" + voteCount +
                 ", reports=" + reports +
                 ", dateCreated=" + dateCreated +
+                ", dateLastUpdated=" + dateLastUpdated +
                 '}';
     }
 }

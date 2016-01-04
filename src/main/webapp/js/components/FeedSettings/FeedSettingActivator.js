@@ -1,14 +1,24 @@
 import React from 'react'
 
 class FeedSettingsActivator extends React.Component {
+
+    createMenuTitle() {
+        let menuDirectionCss = this.props.displayFeedSettingControls
+            ? "glyphicon glyphicon-menu-up" : "glyphicon glyphicon-menu-down";
+        return (<div>
+            <span className={menuDirectionCss}> </span>
+            <span className="margin-left-xs">Settings</span>
+            <span className="margin-left-xs glyphicon glyphicon-cog"></span>
+        </div>)
+    }
+
     render() {
-       // console.log("FeedSettingsActivator render");
         return (
             <div className="well well-sm margin-top-sm">
                 <h4 className="inline-default margin-left-sm hoverable-cursor"
                     onClick={this.props.toggleFeedSettingControls}>
-              <span className={this.props.displayFeedSettingControls ? "glyphicon glyphicon-menu-up"
-              : "glyphicon glyphicon-menu-down"}> </span> Settings</h4>
+                    {this.createMenuTitle()}
+                </h4>
             </div>
         )
     }

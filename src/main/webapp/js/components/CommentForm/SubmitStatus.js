@@ -7,6 +7,7 @@ import React from 'react'
 class SubmitStatus extends React.Component {
     render() {
         const {serverResponse} = this.props;
+        // if status isn't one of the below events, its left hidden
         let css = 'hide';
         let content;
 
@@ -31,8 +32,8 @@ class SubmitStatus extends React.Component {
 
         return (
             <div className={css} role="alert">
-                <button type="button" className="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                <span onClick={this.props.removeCommentSubmitStatus} area-hidden="true"> </span>
+                <button type="button" className="close" aria-label="Close">
+                    <span onClick={this.props.removeCommentSubmitStatus} aria-hidden="true">&times;</span></button>
                 {content}
             </div>
         )

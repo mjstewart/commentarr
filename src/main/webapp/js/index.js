@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import CommentarrHome from './components/Home/CommentarrHome';
+import CommentFeed from './components/Comments/CommentFeed';
 
 
 var comments =
@@ -13,5 +13,5 @@ var comments =
             dateCreated: "23/2/2014", voteCount: 1032, reports: 2}
     ];
 
-ReactDOM.render(<CommentarrHome />,
-    document.getElementById('main'));
+ReactDOM.render(<CommentFeed />,
+    document.getElementById('comment-feed'));

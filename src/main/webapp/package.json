@@ -1,18 +1,19 @@
 {
-  "name": "comment-react",
+  "name": "commentarr",
   "version": "1.0.0",
   "description": "",
   "main": "js/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "Matt",
+  "author": "Matt Stewart",
   "license": "ISC",
   "dependencies": {
     "babel-preset-react": "^6.3.13",
     "babelify": "^7.2.0",
     "bootstrap": "^3.3.6",
     "jquery": "^2.1.4",
+    "moment": "^2.11.0",
     "react": "^0.14.3",
     "react-dom": "^0.14.3"
   },

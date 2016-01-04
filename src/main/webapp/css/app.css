@@ -1,16 +1,13 @@
-#vote-form-container {
-    margin-top: 20px;
-}
-
-#save-status-container {
-    margin-top: 20px;
-}
 
 .margin-all-md {
     margin: 20px;
 }
 
 .margin-top-sm {
+    margin-top: 10px;
+}
+
+.margin-top-md {
     margin-top: 20px;
 }
 
@@ -27,8 +24,17 @@
 }
 
 .margin-left-sm {
+    margin-left: 5px;
+}
+
+.margin-left-md {
     margin-left: 10px;
 }
+
+.margin-left-lg {
+    margin-left: 30px;
+}
+
 
 .margin-left-xs {
     margin-left: 5px;
@@ -37,6 +43,47 @@
 .padding-sm {
     padding: 5px;
 }
+
+.padding-md {
+    padding: 10px;
+}
+
+.padding-lg {
+    padding: 20px;
+}
+
+.rounded {
+    border-radius: 5px;
+}
+
+.lighter-text {
+    color: #74828F;
+}
+
+.core-heading {
+    background: #74828F !important;
+    color: white;
+    border-color: #74828F !important;
+}
+
+.core-border {
+    border-color: #74828F !important;
+}
+
+.jumbotron {
+    background: #AEA8D3 !important;
+}
+
+.jumbotron > h1 {
+    letter-spacing: 8px;
+}
+
+.jumbotron > p {
+    font-size: 22px;
+    font-style: italic;
+}
+
+
 
 .glyphicon-md {
     font-size: 18px !important;
@@ -79,6 +126,10 @@ textarea {
     resize: vertical;
 }
 
+.enabled-icon {
+    font-size: 17px;
+    color: #579662;
+}
 
 #message-textarea {
     width: 100%;
@@ -95,6 +146,10 @@ textarea {
     border-top: 1px solid lightgray;
 }
 
+.bottom-border {
+    border-bottom: 1px solid lightgray;
+}
+
 .position-relative {
     position: relative;
 }
@@ -109,6 +164,13 @@ textarea {
     cursor: pointer
 }
 
+#sort-option-container > div {
+    display: inline-block;
+}
+
+#sort-option-container > div:nth-child(n + 2) {
+    margin-left: 100px
+}
 
 .message-title {
     font-weight: bold;
@@ -175,13 +237,14 @@ textarea {
     margin: auto;
     z-index: 1;
     width: 100%;
-    background: yellowgreen;
+    background: #00E927;
     height: 40px;
     font-size: 20px;
     text-align: center;
     color: black;
-    animation-duration: 3s;
-    animation-name: slideIn;
+    animation: slider 5s;
+    animation-direction: normal;
+
 }
 
 #notification-bar > p {
@@ -189,8 +252,68 @@ textarea {
     top: 6px;
 }
 
+
+@keyframes slider {
+    0% {
+        transform: translate(0, -40px)
+    }
+    50% {
+        transform: translate(0, 0px)
+    }
+    100% {
+        transform: translate(0, -40px);
+    }
+}
+
+
+#notify-test {
+    position: fixed;
+    left: 0;
+    right: 0;
+    margin: auto;
+    z-index: 1;
+    width: 100%;
+    background: #C25B56;
+    height: 40px;
+    font-size: 20px;
+    text-align: center;
+    color: white;
+
+    animation-duration: 1s;
+    animation-delay: 0.4s;
+}
+
+#notify-test > div {
+    position: relative;
+    top: 6px;
+}
+
+
+/* Experimental animations */
+
+.slideOut {
+    animation: slideOut 2s;
+}
+
+.slideIn {
+    animation: slideIn 2s;
+}
+
+@keyframes slideOut {
+    0% {
+        transform: translate(0, -40px)
+    }
+    100% {
+        transform: translate(0, 0);
+    }
+}
+
 @keyframes slideIn {
-    from { top: -40px; }
-    to { top: 0; }
+    0% {
+        transform: translate(0, 0)
+    }
+    100% {
+        transform: translate(0, -40px);
+    }
 }
 

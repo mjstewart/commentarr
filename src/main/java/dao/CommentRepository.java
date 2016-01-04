@@ -1,30 +1,21 @@
 package dao;
 
-import com.mongodb.MongoClient;
 import com.mongodb.WriteConcern;
 import domain.Comment;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.Key;
-import org.mongodb.morphia.Morphia;
-import websocket.CommentEventHandler;
 
 import java.util.Date;
 import java.util.List;
 
 /**
- * Created by matt on 02/January/2016.
+ * Created by Matt Stewart on 02/January/2016.
  */
 public class CommentRepository {
-    private final String dbName = "commentarr";
-    private final Datastore datastore;
+    private final Datastore datastore = MongoDB.INSTANCE.getDatastore();
 
     public CommentRepository() {
-        Morphia morphia = new Morphia();
-        morphia.mapPackage("domain");
-        MongoClient mongoClient = ConnectionFactory.INSTANCE.getMongoClient();
-        datastore = morphia.createDatastore(mongoClient, dbName);
-        datastore.ensureIndexes();
     }
 
     public List<Comment> getAll() {
@@ -38,6 +29,17 @@ public class CommentRepository {
 
     public Comment getById(ObjectId id) {
         return datastore.createQuery(Comment.class).field("id").equal(id).get();
+    }
+
+    /**
+     * Morphia knows the comment to update by the comment id.
+     *
+     * @param comment the Comment to update.
+     * @return true if update successful
+     */
+    public boolean update(Comment comment) {
+        datastore.save(comment);
+        return comment.getVoteCount() == getById(comment.getObjectId()).getVoteCount();
     }
 
 
@@ -66,21 +68,19 @@ public class CommentRepository {
         comment3.setReports(23);
         comment3.setDateCreated(new Date());
 
-        datastore.save(comment1);
+
+        datastore.save(comment1, WriteConcern.ACKNOWLEDGED);
         datastore.save(comment2);
         datastore.save(comment3);
     }
 
 
 
-    public static void main(String[] args) {
-        CommentRepository repository = new CommentRepository();
-        List<Comment> comments = repository.datastore.createQuery(Comment.class).asList();
-        Comment comment = comments.get(0);
-        String s = CommentEventHandler.toJSONString(comment);
-        System.out.println(s);
 
-        //repository.fakeData();
+    public static void main(String[] args) {
+       // CommentRepository repository = new CommentRepository();
+
     }
+
 
 }

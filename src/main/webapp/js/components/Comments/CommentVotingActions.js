@@ -1,5 +1,8 @@
 import React from 'react';
 
+/**
+ * Contains vote count plus up and down vote controls.
+ */
 class CommentVotingActions extends React.Component {
     /**
      *
@@ -9,7 +12,8 @@ class CommentVotingActions extends React.Component {
     onVoteCountChange(up) {
         return function() {
             const newCount = up ? this.props.comment.voteCount + 1 : this.props.comment.voteCount - 1;
-            this.props.updateComment(Object.assign({}, this.props.comment, {voteCount: newCount}));
+            this.props.updateComment(Object.assign({}, this.props.comment,
+                {voteCount: newCount, dateLastUpdated: new Date()}), "voteCount");
         }
     }
 
@@ -26,10 +30,10 @@ class CommentVotingActions extends React.Component {
         return (
             <div>
                 <label>Votes <span className={badgeCss}>{count}</span></label>
-                <button type="button" className="btn btn-xs btn-primary margin-left-sm"
+                <button type="button" className="btn btn-xs btn-primary margin-left-sm core-heading"
                         onClick={this.onVoteCountChange(true).bind(this)}>
                     <span className="glyphicon glyphicon-arrow-up"> </span></button>
-                <button type="button" className="btn btn-xs btn-primary margin-left-xs"
+                <button type="button" className="btn btn-xs btn-primary margin-left-xs core-heading"
                         onClick={this.onVoteCountChange(false).bind(this)}>
                     <span className="glyphicon glyphicon-arrow-down"> </span></button>
             </div>

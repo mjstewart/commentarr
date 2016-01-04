@@ -21,9 +21,16 @@ class CommentForm extends React.Component {
     }
 
     componentWillReceiveProps(nextProps) {
-        // stop server timeout if server responds with ok and we are waiting
-        if (this.props.serverResponse.status === 'waiting') {
+        console.log("CommmentForm componentWillReceiveProps");
+        console.log(this.props.serverResponse);
+        console.log(nextProps);
+
+        if (nextProps.serverResponse.status === 'error') {
+            // prevents timeout error from displaying after error is displayed
+            clearTimeout(this.props.serverResponse.timerId);
+        } else if (this.props.serverResponse.status === 'waiting') {
             if (nextProps.serverResponse.status === 'ok') {
+                // successful save so clear timer and clear form ready for next submission
                 console.log("Was waiting for server but now heard back with a status of OK, clearing timer");
                 clearTimeout(this.props.serverResponse.timerId);
                 this.clearForm();
@@ -113,20 +120,22 @@ class CommentForm extends React.Component {
         }
 
         if (!hasErrors) {
+            const now = new Date();
             const comment = {
                 author: this.state.author,
                 title: this.state.title,
                 message: this.state.message,
                 voteCount: 0,
                 reports: 0,
-                dateCreated: new Date()
+                dateCreated: now,
+                dateLastUpdated: now
             };
             this.props.createComment(comment);
         }
 
         // validationError empty values causes no validation css to appear, else still display errors
         this.setState({
-            validationErrors: validationErrors,
+            validationErrors: validationErrors
         });
     }
 
@@ -158,7 +167,7 @@ class CommentForm extends React.Component {
                                   ? null : this.props.removeCommentSubmitStatus}
                                   errorMessage={this.state.validationErrors.get('message')}/>
 
-                <button type="submit" className="btn btn-primary center-block" onClick={this.onSubmit.bind(this)}>Submit</button>
+                <button type="submit" className="btn btn-primary center-block core-heading" onClick={this.onSubmit.bind(this)}>Submit</button>
 
                 <SubmitStatus serverResponse={this.props.serverResponse} removeCommentSubmitStatus={this.props.removeCommentSubmitStatus} />
             </form>
@@ -172,7 +181,6 @@ CommentForm.propTypes = {
     createComment: React.PropTypes.func.isRequired,
     removeCommentSubmitStatus: React.PropTypes.func.isRequired,
     serverResponse: React.PropTypes.object,
-    serverTimeoutTimerId: React.PropTypes.number
 };
 
 

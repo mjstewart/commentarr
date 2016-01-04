@@ -2,6 +2,7 @@ import React from 'react';
 import CommentVotingActions from './CommentVotingActions';
 import CommentEditActions from './CommentEditActions';
 import FadingStatusMessage from '../FadingStatusMessage';
+import moment from 'moment';
 
 class CommentItem extends React.Component {
 
@@ -13,7 +14,21 @@ class CommentItem extends React.Component {
         return <FadingStatusMessage title="Error" message=" can't connected to server" cssAlertType="alert-danger"/>
     }
 
+
+    getDateStats() {
+        const {comment} = this.props;
+        let date = moment(comment.dateCreated);
+
+        return {
+            fullFormat: date.format("dddd, MMMM Do YYYY, h:mm:ss a"),
+            lastUpdatedTimeAgo: moment(comment.dateLastUpdated).fromNow()
+        }
+    }
+
+
+
     render() {
+        const dateStats = this.getDateStats();
         const {comment} = this.props;
 
         return (
@@ -31,8 +46,11 @@ class CommentItem extends React.Component {
                 </div>
                 <div className="panel-body">
                     <textarea id="message-textarea" defaultValue={comment.message}></textarea>
-                    <p className="margin-top-sm top-border message-metadata">
-                        Posted at {comment.dateCreated} by {comment.author}</p>
+                    <div className="margin-top-sm top-border message-metadata">
+                        <span>Posted on {dateStats.fullFormat}</span>
+                        <span className="margin-left-lg lighter-text">(Last updated {dateStats.lastUpdatedTimeAgo})</span>
+                        <span className="pull-right">By {comment.author}</span>
+                    </div>
                 </div>
                 <div className="panel-footer position-relative">
                     <CommentEditActions {...this.props}/>

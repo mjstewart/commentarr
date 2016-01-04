@@ -1,22 +1,17 @@
 package websocket;
 
-import dao.CommentDao;
-import dao.CommentRepository;
-
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import javax.inject.Named;
-import javax.websocket.server.ServerEndpoint;
 import javax.json.Json;
 import javax.json.JsonObject;
 import javax.json.JsonReader;
 import javax.websocket.*;
+import javax.websocket.server.ServerEndpoint;
 import java.io.StringReader;
-import java.util.function.Consumer;
 
 /**
- * Created by matt on 31/December/2015.
+ * Created by Matt Stewart on 02/January/2016.
  */
 @ApplicationScoped
 @ServerEndpoint("/comments")
@@ -53,8 +48,7 @@ public class CommentWebSocketServer {
     public void onMessage(String message, Session session) {
         System.out.println("server onMessage");
 
-        // Every incoming message will have an event key. Events with more than 1 key will need to determine which
-        // keys they need to extract from this JsonObject.
+        // Every incoming message will have an event key. Individual event handlers will extract any other keys.
         JsonReader reader = Json.createReader(new StringReader(message));
         JsonObject jsonObject = reader.readObject();
         String event = jsonObject.getString("event");
@@ -67,12 +61,13 @@ public class CommentWebSocketServer {
                 break;
             case "comment create":
                 JsonObject data = jsonObject.getJsonObject("data");
-                System.out.println("data: " + data);
-                System.out.println("data: " + data.toString());
-                commentEventHandler.onCommentCreate(session, data.toString());
+                commentEventHandler.onCommentCreate(session, data);
+                break;
+            case "comment update":
+                data = jsonObject.getJsonObject("data");
+                System.out.println("comment update received");
+                commentEventHandler.onUpdateComment(session, data);
                 break;
         }
-
-
-
+    }
 }
