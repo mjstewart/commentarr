@@ -38,7 +38,7 @@ class Socket {
      */
     emit(event, data = null) {
         let message = (data === null) ? JSON.stringify({event}) : JSON.stringify({event, data});
-        console.log("socket.js emit to serverr");
+        console.log("socket.js emit to server");
         console.log(message);
         this.ws.send(message);
     }

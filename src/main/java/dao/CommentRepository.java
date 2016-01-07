@@ -1,10 +1,12 @@
 package dao;
 
-import com.mongodb.WriteConcern;
+import com.mongodb.*;
 import domain.Comment;
+import org.bson.Document;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.Key;
+import org.mongodb.morphia.Morphia;
 
 import java.util.Date;
 import java.util.List;
@@ -18,17 +20,22 @@ public class CommentRepository {
     public CommentRepository() {
     }
 
-    public List<Comment> getAll() {
+    public List<Comment> getAll() throws MongoException {
         return datastore.createQuery(Comment.class).asList();
     }
 
-    public boolean save(Comment comment) {
-        Key<Comment> save = datastore.save(comment);
+    public boolean save(Comment comment) throws MongoException {
+        Key<Comment> save = datastore.save(comment, WriteConcern.ACKNOWLEDGED);
         return getById((ObjectId) save.getId()) != null;
     }
 
-    public Comment getById(ObjectId id) {
+    public Comment getById(ObjectId id) throws MongoException {
         return datastore.createQuery(Comment.class).field("id").equal(id).get();
+    }
+
+    public boolean delete(Comment comment) throws MongoException {
+        WriteResult delete = datastore.delete(comment, WriteConcern.ACKNOWLEDGED);
+        return delete.getN() == 1;
     }
 
     /**
@@ -37,7 +44,7 @@ public class CommentRepository {
      * @param comment the Comment to update.
      * @return true if update successful
      */
-    public boolean update(Comment comment) {
+    public boolean update(Comment comment) throws MongoException {
         datastore.save(comment);
         return comment.getVoteCount() == getById(comment.getObjectId()).getVoteCount();
     }
@@ -75,11 +82,24 @@ public class CommentRepository {
     }
 
 
-
-
     public static void main(String[] args) {
-       // CommentRepository repository = new CommentRepository();
+        // CommentRepository repository = new CommentRepository();
 
+        try {
+            MongoClientOptions mongoClientOptions = MongoClientOptions.builder().heartbeatFrequency(2000).build();
+
+            MongoClient mongoClient = new MongoClient(new ServerAddress("localhost", 27017), mongoClientOptions);
+
+            Morphia morphia = new Morphia();
+            morphia.mapPackage("domain");
+            Datastore datastore = morphia.createDatastore(mongoClient, "commentarr");
+
+            Document document = mongoClient.getDatabase("commentarr").runCommand(new Document("ping", 1));
+            System.out.println(document);
+        } catch (MongoTimeoutException e) {
+            // handle server down or failed query here
+            System.out.println(e.getMessage());
+        }
     }
 
 

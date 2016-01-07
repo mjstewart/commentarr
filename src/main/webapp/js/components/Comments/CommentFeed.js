@@ -1,12 +1,17 @@
 import React from 'react';
+import Immutable from 'immutable';
 import CreateCommentButton from './../CreateCommentButton';
 import CommentForm from './../CommentForm/CommentForm';
 import FeedSettingActivator from './../FeedSettings/FeedSettingActivator';
 import FeedSettingControls from './../FeedSettings/FeedSettingControls';
 import CommentList from './CommentList';
 import Socket from '../../socket';
-import NotificationBar from '../Home/notifications';
+import NotificationBar from '../../notifications';
 
+/**
+ * Top most Component that stores all the state that the lower components react to.
+ * Immutable js is used so keep that in mind when you see the same list/maps etc being reassigned to itself all the time.
+ */
 class CommentFeed extends React.Component {
 
     constructor(props) {
@@ -15,9 +20,12 @@ class CommentFeed extends React.Component {
 
         // keep entire feed state at top level, clojure script does this style, then state is passed down to everyone
         this.state = {
-            comments: [],
-            displayVoteForm: false,
+            comments: Immutable.List(),
+            displayCreateCommentForm: false,
 
+            /*
+             * Defines how the feed is sorted
+             */
             sortSettings: {
                 field: 'voteCount',
                 order: 'desc',
@@ -27,12 +35,15 @@ class CommentFeed extends React.Component {
             // true if connected to web socket server
             connected: false,
 
+            // flag used to provide reloading feedback to user if no comments were received due to database error
+            failedInitialCommentFetch: true,
+
             /*
              * Encapsulates server response details used to provide user feedback.
              * status codes are [ok, waiting, error, timeout]
              *
              * event === '' means all children components will ignore the response and not output any feedback messages.
-             * Object is not null so additional null checks are not needed, only simple event comparisons.
+             * The object is not null so additional null checks are not needed, only simple event comparisons.
              *
              * Every object has event and status keys, extra keys are added depending on status code context
              * 'error' - reason
@@ -46,19 +57,24 @@ class CommentFeed extends React.Component {
 
             displayFeedSettingControls: false,
 
-            // if not null, every comment change is run through filter before being displayed in feed.
-            commentFilterFn: null,
+            // if filterName isn't null, every comment change is run through filter before being displayed in feed.
+            commentFilter: {
+                filterName: null,
+                filterFn: null
+            },
 
             /*
              * For efficiency reasons. When a filter is applied, current comments are cached for later when filter is
-             * cleared to avoid contacting server again. 3 other arrays are kept which act as pending updates to
-             * apply. When filter is cleared, comments will equal cached comments minus deleted comments, plus
-             * new comments with any existing comments being updated.
+             * cleared to avoid contacting server again. As comment changes come in from server they are added to
+             * the caches for later use. When filter is cleared, comments will equal cached comments minus deleted
+             * comments, plus new comments with any existing comments updated.
+             *
+             * maps used to avoid looping through arrays when merge back happens as key=comment id, value=comment.
              */
-            cachedComments: [],
-            newCommentsForCache: [],
-            updatedCommentsForCache: [],
-            deletedCommentsForCache: []
+            cachedComments: Immutable.List(),
+            newCommentsForCache: Immutable.List(),
+            updatedCommentsForCache: Immutable.Map(),
+            deletedCommentIdForCache: Immutable.Set()
         }
     }
 
@@ -75,6 +91,9 @@ class CommentFeed extends React.Component {
          * All functions starting with on are from server to client.
          * When server sends client data, onMessage in socket.js handles the request by using the message event
          * to call the corresponding method below to handle the event.
+         *
+         * Note, any change to event names will need to be changed in any component who uses the names to manipulate
+         * user feedback.
          */
         socket.addListener('connect', this.onConnect.bind(this));
         socket.addListener('disconnect', this.onDisconnect.bind(this));
@@ -83,18 +102,74 @@ class CommentFeed extends React.Component {
         socket.addListener('comment update', this.onUpdateComment.bind(this));
         socket.addListener('comment delete', this.onDeleteComment.bind(this));
         socket.addListener('subscribe comments', this.onSubscribeComments.bind(this));
+        socket.addListener('comment getAll', this.onGetAllComments.bind(this));
         socket.addListener('error', this.onError.bind(this));
     }
 
+    /**
+     * Called when web socket connects to server.
+     */
     onConnect() {
         console.log("client onConnect() -> subscribing to comments");
-        this.setState({connected: true});
+        this.setState({
+            connected: true,
+            serverResponse: {
+                event: 'subscribe comments',
+                status: 'waiting'
+            }
+        });
         this.socket.emit('subscribe comments');
     }
 
+    /**
+     * Called when web socket disconnects from server.
+     */
     onDisconnect() {
         console.log("client onDisconnect()");
-        this.setState({connected: false});
+        this.setState({
+            connected: false,
+            serverResponse: {
+                event: '',
+                status: ''
+            }
+        });
+    }
+
+    /**
+     * Request server to send us all the comments.
+     */
+    getAllComments() {
+        this.setState({
+            serverResponse: {
+                event: 'comment getAll',
+                status: 'waiting'
+            }
+        });
+        this.socket.emit('comment getAll');
+    }
+
+    /**
+     * All the comments the server sent us.
+     *
+     * @param json
+     */
+    onGetAllComments(json) {
+        console.log("onGetallComments");
+        console.log(json);
+        const commentArray = JSON.parse(json.comments);
+
+
+
+        console.log(commentArray);
+
+        this.setState({
+            serverResponse: {
+                event: 'comment getAll',
+                status: 'ok'
+            },
+            failedInitialCommentFetch: false,
+            comments: this.sort(commentArray, this.state.sortSettings.comparator)
+        });
     }
 
     /**
@@ -106,10 +181,17 @@ class CommentFeed extends React.Component {
     onSubscribeComments(json) {
         console.log("client onSubscribeComments -> received in bulk comments");
         const commentArray = JSON.parse(json.comments);
+        const immutableCommentList = Immutable.List(JSON.parse(json.comments));
         console.log(commentArray);
-        console.log(typeof commentArray[0].dateCreated === 'number');
+
+
         this.setState({
-            comments: this.sort(commentArray, this.state.sortSettings.comparator)
+            serverResponse: {
+                event: 'subscribe comments',
+                status: 'ok'
+            },
+            failedInitialCommentFetch: false,
+            comments: this.sort(immutableCommentList, this.state.sortSettings.comparator)
         });
     }
 
@@ -117,27 +199,32 @@ class CommentFeed extends React.Component {
     /**
      * Toggle vote form on and off
      */
-    toggleVoteForm() {
+    toggleCommentForm() {
+        const status = this.state.serverResponse.status;
+        const event = this.state.serverResponse.event;
+
+        // don't clear waiting status otherwise other components waiting ui feedback will clear
         this.setState({
             displayVoteForm: !this.state.displayVoteForm,
-            // removes submit status panel from form
             serverResponse: {
-                event: '',
-                status: ''
+                event: status === "waiting" ? event : "",
+                status: status === "waiting" ? "waiting" : ""
             },
             serverTimeoutTimerId: null
         });
     }
 
     /**
-     * Removes the submit status box in the vote form which displays after comment has been submitted for user feedback
+     * Removes the submit status box in the vote form which displays after comment has been submitted for user feedback.
+     * By clearing the serverResponse state, any components feedback dependent on this state will be cleared.
      */
     removeCommentSubmitStatus() {
         console.log("removeCommentSubmitStatus");
+
         this.setState({
             serverResponse: {
-                event: '',
-                status: ''
+                event: "",
+                status: ""
             }
         });
     }
@@ -158,6 +245,12 @@ class CommentFeed extends React.Component {
     }
 
 
+    /**
+     * Inform user on comment submit status by changing the serverResponse state which the CommentForm looks at to
+     * derive submit status.
+     *
+     * @param serverResponse the response from the server.
+     */
     onCreateComment(serverResponse) {
         console.log("onCreateComment");
         console.log(serverResponse);
@@ -170,16 +263,22 @@ class CommentFeed extends React.Component {
 
     }
 
+    /**
+     * Sends new comment to the server and sets up waiting state for user feedback
+     *
+     * @param comment the new comment to save
+     */
     createComment(comment) {
         console.log("in createComment");
         this.socket.emit('comment create', comment);
 
         // timer provided so child components can stop the timer if response from server is received
+        // note for timer, it needs to be greater than database timeout so we can differentiate between the 2.
         this.setState({
             serverResponse: {
                 event: 'comment create',
                 status: 'waiting',
-                timerId: setTimeout(() => this.onServerTimeout('comment create'), 10000)
+                timerId: setTimeout(() => this.onServerTimeout('comment create'), 20000)
             }
         });
     }
@@ -195,20 +294,30 @@ class CommentFeed extends React.Component {
         console.log("Received comment from server");
         console.log(json);
         const comment = JSON.parse(json.comment);
-        const comments = this.state.comments.concat([comment]);
 
-        if (this.state.commentFilterFn == null) {
+        if (this.state.commentFilter.filterName == null) {
+            // the addCommentCache isn't created here as initial state sets it up and is recreated every time the
+            // filter is cleared
             this.setState({
-                comments: this.filterAndSort(comments, this.state.sortSettings.comparator, this.state.commentFilterFn)
+                comments: this.filterAndSort(
+                    this.state.comments.push(comment),
+                    this.state.sortSettings.comparator,
+                    this.state.commentFilter.filterFn)
             });
         } else {
+            // filter is on, cache the deleted comment so it can be merged back when filter is removed.
+            // a new Immutable.List is created with the new comment added, then filtered and sorted again so all client
+            // views see the new comment in whatever sort/filter settings they have on.
             this.setState({
-                comments: this.filterAndSort(comments, this.state.sortSettings.comparator, this.state.commentFilterFn),
-                newCommentsForCache: this.state.newCommentsForCache.concat([comment])
+                comments: this.filterAndSort(
+                    this.state.comments.push(comment),
+                    this.state.sortSettings.comparator,
+                    this.state.commentFilter.filterFn),
+                newCommentsForCache: this.state.newCommentsForCache.push(comment)
             });
         }
 
-        const message = `1 new comment by ${comment.author}`;
+        const message = `1 new comment by \'${comment.author}\'`;
         this.notificationHandler.showNotification(message);
     }
 
@@ -227,7 +336,7 @@ class CommentFeed extends React.Component {
      *
      * Otherwise error handler is called.
      *
-     * @param comment
+     * @param comment the updated comment
      * @param field the field being updated so specific ui feedback can be provided on success/error. This feature
      * is to eliminate having many update functions purely used to identity which field is being updated.
      */
@@ -255,62 +364,65 @@ class CommentFeed extends React.Component {
 
         // remove old comment and replace with the new updated comment
         let newComments = this.state.comments.filter(c => c.id !== comment.id);
-        newComments.push(comment);
-        newComments = this.filterAndSort(newComments, this.state.sortSettings.comparator, this.state.commentFilterFn);
+        newComments = newComments.push(comment);
+        newComments = this.filterAndSort(newComments, this.state.sortSettings.comparator, this.state.commentFilter.filterFn);
 
-        if (this.state.commentFilterFn == null) {
+        if (this.state.commentFilter.filterName == null) {
+            // the updateCache isn't created here as initial state sets it up and is recreated every time filter is cleared
             this.setState({
                 comments: newComments
             });
         } else {
+            // filter is on, cache the deleted comment so it can be merged back when filter is removed.
             this.setState({
                 comments: newComments,
-                updatedCommentsForCache: this.state.updatedCommentsForCache.concat([comment])
+                updatedCommentsForCache: this.state.updatedCommentsForCache.set(comment.id, comment)
             });
         }
 
         const message = `+1 updated comment with \'title ${comment.title}\'`;
         this.notificationHandler.showNotification(message);
-
     }
 
     /**
-     * Tell server to remove this comment
+     * Tell server to remove this comment.
      *
-     * @param comment
+     * The full comment is sent because morphia is used on the server which converts json comment into Comment domain
+     * object and applies delete that way.
+     *
+     * @param comment the comment to delete
      */
     deleteComment(comment) {
         console.log('deleteComment title=' + comment.title);
-        // don't modify existing array, make a new one without id in it, treat comments as immutable
-        // TODO: should just pass comment id?
         this.socket.emit('comment delete', comment);
     }
 
     /**
      * Server tells us to remove a comment
      *
-     * @param comment
+     * @param commentId
      */
-    onDeleteComment(comment) {
-        console.log('onDeleteComment title=' + comment.title);
-        // TODO: should just pass comment id?
-        const newComments = this.state.comments.filter(c => c.id !== comment.id);
-        this.setState({
-            comments: this.filterAndSort(newComments, this.state.sortSettings.comparator, this.state.commentFilterFn)
-        });
+    onDeleteComment(commentId) {
+        console.log('onDeleteComment id=' + commentId);
 
-        if (this.state.commentFilterFn == null) {
+        const newCommentsAfterDelete = this.state.comments.filter(c => c.id !== commentId);
+        const comments = this.filterAndSort(newCommentsAfterDelete,
+            this.state.sortSettings.comparator, this.state.commentFilter.filterFn);
+
+        if (this.state.commentFilter.filterName == null) {
+            // the deleteCache isn't created here as initial state sets it up and is recreated every time filter is cleared
             this.setState({
-                comments: newComments
+                comments: comments
             });
         } else {
+            // filter is on, cache the deleted comment so it can be merged back when filter is removed.
             this.setState({
-                comments: newComments,
-                deletedCommentsForCache: this.state.deletedCommentsForCache.concat([comment])
+                comments: comments,
+                deletedCommentIdForCache: this.state.deletedCommentIdForCache.add(commentId)
             });
         }
 
-        const message = `+1 comment deleted with \'title ${comment.title}\'`;
+        const message = `+1 comment deleted with \'id ${commentId}\'`;
         this.notificationHandler.showNotification(message);
     }
 
@@ -324,24 +436,35 @@ class CommentFeed extends React.Component {
      * event status keys.
      *
      * Example json format
-     * { event: 'comment add' status: 'error' reason: 'server timeout' }
+     * { event: 'comment add' errorEvent: 'database offline', status: 'error' reason: 'server timeout' }
      *
      * @param error the error object sent from server
      */
     onError(error) {
         console.log("onError in client");
+        console.log(error);
 
-        this.setState({
-            serverResponse: {
-                event: error.errorEvent,
-                status: error.event,
-                reason: error.reason
+        if (typeof error !== "undefined") {
+            if (this.state.failedInitialCommentFetch && error.errorEvent === "database offline") {
+                // failedInitialCommentFetch is true to begin with, so if its still true this is the first db error
             }
-        });
+
+            this.setState({
+                serverResponse: {
+                    event: error.performingAction,
+                    errorEvent: error.errorEvent,
+                    status: error.event,
+                    reason: error.reason
+                },
+
+                failedInitialCommentFetch: (this.state.failedInitialCommentFetch
+                && error.errorEvent === "database offline")
+            });
+        }
     }
 
     /**
-     * Panel containing feed sort options
+     * Panel containing feed settings for sorting etc
      */
     toggleFeedSettingControls() {
         this.setState({
@@ -350,7 +473,7 @@ class CommentFeed extends React.Component {
     }
 
     /**
-     * Sorts comments according to new criteria and runs and filters over the comments if any exist.
+     * Sorts comments according to the new criteria and applies any existing filters.
      *
      * @param newSortSettings the new sorting criteria to apply
      */
@@ -359,7 +482,7 @@ class CommentFeed extends React.Component {
         console.log(newSortSettings);
         console.log("");
 
-        const comments = this.filterAndSort(this.state.comments, newSortSettings.comparator, this.state.commentFilterFn);
+        const comments = this.filterAndSort(this.state.comments, newSortSettings.comparator, this.state.commentFilter.filterFn);
         console.log("back in onSortChange after filterAndSort");
         console.log(comments);
         this.setState({
@@ -372,9 +495,9 @@ class CommentFeed extends React.Component {
      * Sorts comments according to comparatorFn.
      * The comment array is sorted in place, but we return a reference to the same comments array.
      *
-     * @param comments the comments to sort
+     * @param comments Immutable.List of the comments to sort
      * @param comparatorFn how to sort the comments
-     * @returns the sorted array
+     * @returns a sorted Immutable.List
      */
     sort(comments, comparatorFn) {
         console.log("sort");
@@ -383,12 +506,12 @@ class CommentFeed extends React.Component {
     }
 
     /**
-     * A new comments array is returned if commentFilterFn is not null, otherwise supplied comment array is returned
-     * so null doesn't need to be handled.
+     * The supplied comments list is returned if filterFn is null, otherwise the supplied filterFn is used
+     * to generate and return a new Immutable.List.
      *
-     * @param comments the comments to filter
-     * @param filterFn how to filter the comments
-     * @returns the filtered comments if commentFilterFn is not null, otherwise supplied comments are returned.
+     * @param comments Immutable.List of the comments to filter
+     * @param filterFn the predicate to filter by
+     * @returns a filtered Immutable.List
      */
     filterComments(comments, filterFn) {
         console.log("filterComments");
@@ -402,7 +525,7 @@ class CommentFeed extends React.Component {
      * @param comments the comments to filter and sort
      * @param comparatorFn how to sort the comments
      * @param filterFn how to filter the comments
-     * @returns final comments array
+     * @returns final Immutable.List comments array
      */
     filterAndSort(comments, comparatorFn, filterFn) {
         console.log("filterAndSort");
@@ -410,17 +533,100 @@ class CommentFeed extends React.Component {
     }
 
     /**
-     * Sets the new comment filter as well apply filter and existing sorting settings to existing comments.
-     * Every new incoming comment will be run through filter if commentFilterFn is not null.
+     * Applies filter on comment array and sorts it based on existing sort settings.
+     * If a filter is already applied, the comment list is rebuilt based on the caches and the filter is reapplied
+     * on the entire new comments.
      *
-     * @param filterFn the fn to filter comments by
+     * @param commentFilter the commentFilter object containing the filtering name and predicate
      */
-    setCommentFilter(filterFn) {
+    setCommentFilter(commentFilter) {
+        if (this.state.commentFilter.filterName === null) {
+            // no filter on, store cached comments so when filter is off again original comments can be restored
+            const cachedComments = Immutable.List(this.state.comments);
+            this.setState({
+                cachedComments: cachedComments,
+                comments: this.filterAndSort(this.state.comments, this.state.sortSettings.comparator, commentFilter.filterFn),
+                commentFilter: commentFilter
+            });
+        } else {
+            // acts as the new comments that filter will be run on
+            let rebuiltComments = this.rebuildCommentsFromCache.bind(this)();
+
+            // before filtering, create a new cache
+            let newCommentCache = Immutable.List(rebuiltComments);
+
+            this.setState({
+                cachedComments: newCommentCache,
+                comments: this.filterAndSort(rebuiltComments, this.state.sortSettings.comparator, commentFilter.filterFn),
+                commentFilter: commentFilter
+            });
+        }
+    }
+
+    clearCommentFilter() {
+        console.log("clearCommentFilter");
+        // ensure no commentFilter.filterFn is applied as the goal is to get ALL the latest comments back
+        let rebuiltComments = this.filterAndSort(
+            this.rebuildCommentsFromCache.bind(this)(),
+            this.state.sortSettings.comparator,
+            null);
+
         this.setState({
-            comments: this.filterAndSort(this.state.comments, this.state.sortSettings.comparator, filterFn),
-            commentFilterFn: filterFn
+            comments: rebuiltComments,
+            commentFilter: {
+                filterName: null,
+                filterFn: null
+            },
+
+            cachedComments: Immutable.List(),
+            newCommentsForCache: Immutable.List(),
+            updatedCommentsForCache: Immutable.Map(),
+            deletedCommentIdForCache: Immutable.Set()
         });
     }
+
+    /**
+     * Using the various caches kept whilst any filters are applied, the comments list is rebuilt. The caches
+     * are used to avoid having to recontact the server to retrieve all the comments again.
+     *
+     * The cachedComments contains all comments prior to any filters being applied.
+     * The new comment list will contain any updated and new comments. Deleted comments will be removed.
+     *
+     * Implementation note: cant use sets as js sets compare objects by reference, not like java where you can
+     * define custom compareTo.
+     *
+     * @returns the rebuilt comments Immutable.List
+     */
+    rebuildCommentsFromCache() {
+        console.log("rebuildCommentsFromCache");
+        let rebuiltComments = Immutable.List();
+        /*
+         * go through the cached comments (all comments prior to filter being applied),
+         * if its not in deleted map, check if there has been an update for the comment,
+         * if so add updated version otherwise it hasn't changed so just add the comment as it was in cached version.
+         */
+        this.state.cachedComments.forEach(comment => {
+            if (!this.state.deletedCommentIdForCache.has(comment.id)) {
+                const updatedComment = this.state.updatedCommentsForCache.get(comment.id);
+                if (updatedComment === undefined) {
+                    rebuiltComments = rebuiltComments.push(comment);
+                } else {
+                    rebuiltComments = rebuiltComments.push(updatedComment);
+                }
+            }
+        });
+
+        console.log("rebuild");
+        console.log(rebuiltComments);
+
+        // lastly, add any new comments
+        this.state.newCommentsForCache.forEach(comment => {
+            rebuiltComments = rebuiltComments.push(comment);
+        });
+
+        return rebuiltComments;
+    }
+
 
 
     getRenderedContent() {
@@ -428,8 +634,9 @@ class CommentFeed extends React.Component {
             return (
                 <div>
                     <CreateCommentButton
-                        displayVoteForm={this.state.displayVoteForm}
-                        toggleVoteForm={this.toggleVoteForm.bind(this)} />
+                        displayCreateCommentForm={this.state.displayCreateCommentForm}
+                        toggleCommentForm={this.toggleCommentForm.bind(this)}
+                        serverResponse={this.state.serverResponse}/>
 
                     {this.state.displayVoteForm ?
                         <CommentForm createComment={this.createComment.bind(this)}
@@ -441,21 +648,25 @@ class CommentFeed extends React.Component {
 
                     {this.state.displayFeedSettingControls ?
                         <FeedSettingControls sortSettings={this.state.sortSettings}
-                                             filterFn={this.state.commentFilterFn}
+                                             commentFilter={this.state.commentFilter}
                                              onSortChange={this.onSortChange.bind(this)}
-                                             setCommentFilter={this.setCommentFilter.bind(this)}/> : null
+                                             setCommentFilter={this.setCommentFilter.bind(this)}
+                                             clearCommentFilter={this.clearCommentFilter.bind(this)}
+                                             comments={this.state.comments}/> : null
                     }
 
                     <CommentList comments={this.state.comments}
                                  serverResponse={this.state.serverResponse}
                                  updateComment={this.updateComment.bind(this)}
-                                 deleteComment={this.deleteComment.bind(this)} />
+                                 deleteComment={this.deleteComment.bind(this)}
+                                 getAllComments={this.getAllComments.bind(this)}
+                                 failedInitialCommentFetch={this.state.failedInitialCommentFetch}/>
                 </div>)
         } else {
-            return (<div className="alert alert-dismissible margin-top-sm alert-warning" role="alert">
-                <p><span className="glyphicon glyphicon-info-sign glyphicon-md margin-right-sm"> </span>
-                    Comment feed is offline, please refresh page to try again</p>
-            </div>)
+                return (<div className="alert alert-dismissible margin-top-sm alert-warning" role="alert">
+                    <p><span className="glyphicon glyphicon-info-sign glyphicon-md margin-right-sm"> </span>
+                        Comment feed is offline, please refresh page to try again</p>
+                </div>)
         }
     }
 
@@ -466,7 +677,7 @@ class CommentFeed extends React.Component {
 
 }
 
-export default CommentFeed
+export default CommentFeed;
 
 
 

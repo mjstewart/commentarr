@@ -24,13 +24,14 @@ class CommentForm extends React.Component {
         console.log("CommmentForm componentWillReceiveProps");
         console.log(this.props.serverResponse);
         console.log(nextProps);
+        // nextProps are the current props, this.props refers to the previous props
 
         if (nextProps.serverResponse.status === 'error') {
             // prevents timeout error from displaying after error is displayed
             clearTimeout(this.props.serverResponse.timerId);
         } else if (this.props.serverResponse.status === 'waiting') {
             if (nextProps.serverResponse.status === 'ok') {
-                // successful save so clear timer and clear form ready for next submission
+                // // last props was waiting, but now its ok, clear form ready for next submission
                 console.log("Was waiting for server but now heard back with a status of OK, clearing timer");
                 clearTimeout(this.props.serverResponse.timerId);
                 this.clearForm();
@@ -167,7 +168,9 @@ class CommentForm extends React.Component {
                                   ? null : this.props.removeCommentSubmitStatus}
                                   errorMessage={this.state.validationErrors.get('message')}/>
 
-                <button type="submit" className="btn btn-primary center-block core-heading" onClick={this.onSubmit.bind(this)}>Submit</button>
+                <button type="submit" className="btn btn-primary center-block core-heading"
+                        onClick={this.onSubmit.bind(this)}
+                        disabled={this.props.serverResponse.status === "waiting"}>Submit</button>
 
                 <SubmitStatus serverResponse={this.props.serverResponse} removeCommentSubmitStatus={this.props.removeCommentSubmitStatus} />
             </form>

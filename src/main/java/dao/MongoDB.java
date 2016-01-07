@@ -1,9 +1,7 @@
 package dao;
 
 
-import com.mongodb.MongoClient;
-import com.mongodb.MongoException;
-import com.mongodb.MongoSocketOpenException;
+import com.mongodb.*;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.Morphia;
 
@@ -28,12 +26,15 @@ public enum MongoDB {
 
     MongoDB() {
         System.out.println("In MongoDB connection Constructor");
-        mongoClient = new MongoClient(host, port);
+        MongoClientOptions mongoClientOptions = MongoClientOptions.builder().serverSelectionTimeout(10000).build();
+        mongoClient = new MongoClient(new ServerAddress(host, port), mongoClientOptions);
+        System.out.println(mongoClient.getMongoClientOptions());
         Morphia morphia = new Morphia();
         morphia.mapPackage("domain");
         datastore = morphia.createDatastore(mongoClient, dbName);
         datastore.ensureIndexes();
     }
+
 
     public Datastore getDatastore() {
         return datastore;
@@ -61,6 +62,4 @@ public enum MongoDB {
     public void close() {
         mongoClient.close();
     }
-
-
 }

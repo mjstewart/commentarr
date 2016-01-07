@@ -1,13 +1,13 @@
 import React from 'react'
+import AuthorFilterSelector from './AuthorFilterSelector';
 
 class FeedSettingControls extends React.Component {
 
     constructor(props) {
-        super(props);
+        console.log("FeedSettingControls, constructor");
+        console.log(props);
 
-        this.state = {
-            byAuthorFilterText: ''
-        }
+        super(props);
     }
 
     orderByCommentLength(longest) {
@@ -36,14 +36,14 @@ class FeedSettingControls extends React.Component {
                 const sortSettings = {
                     field: 'dateLastUpdated',
                     order: 'most recent',
-                    comparator: (a, b) => a.dateLastUpdated < b.dateLastUpdated
+                    comparator: (a, b) => -(a.dateLastUpdated - b.dateLastUpdated)
                 };
                 this.props.onSortChange(sortSettings);
             } else {
                 const sortSettings = {
                     field: 'dateLastUpdated',
                     order: 'least recent',
-                    comparator: (a, b) => b.dateLastUpdated < a.dateLastUpdated
+                    comparator: (a, b) => a.dateLastUpdated - b.dateLastUpdated
                 };
                 this.props.onSortChange(sortSettings);
             }
@@ -56,14 +56,14 @@ class FeedSettingControls extends React.Component {
                 const sortSettings = {
                     field: 'dateCreated',
                     order: 'newest',
-                    comparator: (a, b) => a.dateCreated < b.dateCreated
+                    comparator: (a, b) => -(a.dateCreated - b.dateCreated)
                 };
                 this.props.onSortChange(sortSettings);
             } else {
                 const sortSettings = {
                     field: 'dateCreated',
                     order: 'oldest',
-                    comparator: (a, b) => b.dateCreated < a.dateCreated
+                    comparator: (a, b) => a.dateCreated - b.dateCreated
                 };
                 this.props.onSortChange(sortSettings);
             }
@@ -99,7 +99,7 @@ class FeedSettingControls extends React.Component {
      *
      * @param field the current active sort field
      * @param order the current sort order
-     * @returns {XML}
+     * @returns the VoteCountSortControl to be rendered
      */
     getVoteCountSortControl(field, order) {
         const isActive = field === "voteCount";
@@ -137,7 +137,7 @@ class FeedSettingControls extends React.Component {
      *
      * @param field the current active sort field
      * @param order the current sort order
-     * @returns {XML}
+     * @returns the CommentLengthSortControl to be rendered
      */
     getCommentLengthSortControl(field, order) {
         const isActive = field === "message";
@@ -174,7 +174,7 @@ class FeedSettingControls extends React.Component {
      *
      * @param field the current active sort field
      * @param order the current sort order
-     * @returns {XML}
+     * @returns the DateCreatedSortControl to be rendered
      */
     getDateCreatedSortControl(field, order) {
         const isActive = field === "dateCreated";
@@ -211,7 +211,7 @@ class FeedSettingControls extends React.Component {
      *
      * @param field the current active sort field
      * @param order the current sort order
-     * @returns {XML}
+     * @returns the DateLastUpdatedSortControl to be rendered
      */
     getDateLastUpdatedSortControl(field, order) {
         const isActive = field === "dateLastUpdated";
@@ -244,33 +244,21 @@ class FeedSettingControls extends React.Component {
             </div>);
     }
 
-    onAuthorTextFilterChange(event) {
-        this.setState({
-            byAuthorFilterText: event.target.value
-        });
-    }
-
-    OnAuthorFilterClick() {
-        this.props.setCommentFilter(comment => comment.author === this.state.byAuthorFilterText);
-    }
-
 
     getFilterByAuthorControl() {
-        const isActive = this.props.filterFn !== null;
+        // AuthorFilterSelector sets filterName when its value changes.
+        // filterName enables us to identify the author filter is enabled, useful if more filters get added later.
+        const isActive = this.props.commentFilter.filterName === "authorName";
+
         return (
             <div>
                 {isActive ? <label>By author {this.getEnabledIcon()}</label> : <label>By author</label>}
-                <div className="input-group">
-                    <input type="text" className="form-control" placeholder="Enter author name"
-                           onChange={this.onAuthorTextFilterChange.bind(this)} value={this.state.byAuthorFilterText}/>
-                    <span className="input-group-btn">
-                        <button type="button" className="btn btn-default core-heading"
-                                data-toggle="tooltip" title="Search comments by author" onClick={this.OnAuthorFilterClick.bind(this)}>
-                            <span className="glyphicon glyphicon-search inline"></span>
-                        </button>
-                    </span>
-                </div>
-            </div>)
+                <AuthorFilterSelector comments={this.props.comments}
+                                      setCommentFilter={this.props.setCommentFilter}
+                                      clearCommentFilter={this.props.clearCommentFilter}
+                                      showClearButton={isActive}/>
+            </div>
+        );
     }
 
 
@@ -282,31 +270,32 @@ class FeedSettingControls extends React.Component {
             <div id="sort-option-container1" className="well">
                 <div className="container-fluid">
                     <div className="row">
-                        <h4 className="core-heading bottom-border padding-sm rounded">Sort order</h4>
+                        <h4 className="core-heading bottom-border padding-sm rounded">Sort order
+                            <span className="glyphicon glyphicon-sort margin-left-sm"></span></h4>
                     </div>
-
                     <div className="row">
-                        <div className="col-lg-3">
+                        <div className="col-lg-3 col-md-3 col-sm-3">
                             {this.getVoteCountSortControl(field, order)}
                         </div>
-                        <div className="col-lg-3">
+                        <div className="col-lg-3 col-md-3 col-sm-3">
                             {this.getDateCreatedSortControl(field, order)}
                         </div>
-                        <div className="col-lg-3">
+                        <div className="col-lg-3 col-md-3 col-sm-3">
                             {this.getDateLastUpdatedSortControl(field, order)}
                         </div>
-                        <div className="col-lg-3">
+                        <div className="col-lg-3 col-md-3 col-sm-3">
                             {this.getCommentLengthSortControl(field, order)}
                         </div>
                     </div>
 
                     <div className="row margin-top-sm">
-                        <h4 className="bottom-border core-heading padding-sm rounded">Filter</h4>
+                        <h4 className="bottom-border core-heading padding-sm rounded">Filter
+                            <span className="glyphicon glyphicon-filter margin-left-sm"></span></h4>
                     </div>
 
                     <div className="row">
                         <div className="col-lg-4">
-                            {this.getFilterByAuthorControl()}
+                            {this.getFilterByAuthorControl.bind(this)()}
                         </div>
                     </div>
 
@@ -316,12 +305,13 @@ class FeedSettingControls extends React.Component {
     }
 }
 
-// filterFn is optional because if its null it means no filter is applied
 FeedSettingControls.propTypes = {
     sortSettings: React.PropTypes.object.isRequired,
-    filterFn: React.PropTypes.func,
+    commentFilter: React.PropTypes.object.isRequired,
     onSortChange: React.PropTypes.func.isRequired,
-    setCommentFilter: React.PropTypes.func.isRequired
+    setCommentFilter: React.PropTypes.func.isRequired,
+    clearCommentFilter: React.PropTypes.func.isRequired,
+    comments: React.PropTypes.object.isRequired
 };
 
 

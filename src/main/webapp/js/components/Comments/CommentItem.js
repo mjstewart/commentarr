@@ -35,10 +35,10 @@ class CommentItem extends React.Component {
             <div className="panel panel-default">
                 <div className="panel-heading panel-heading-comment">
                     <div className="row">
-                        <div className="col-lg-9">
+                        <div className="col-lg-9 col-md-9 col-sm-7 col-xs-7">
                             <h5 className="message-title">{comment.title}</h5>
                         </div>
-                        <div className="col-lg-3">
+                        <div className="col-lg-3 col-md-3 col-sm-5 col-xs-5">
                             <CommentVotingActions comment={this.props.comment}
                                                   updateComment={this.props.updateComment}/>
                         </div>

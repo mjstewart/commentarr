@@ -5,7 +5,7 @@ class NotificationBar {
     constructor() {
         console.log("in notification bar constructor ###################################################################");
         this.notifications = [];
-        this.notifyDiv = $("#notify-test");
+        this.notifyDiv = $("#notification-bar");
         this.notificationMessage = $("#notification-message");
         this.displaying = false;
         this.timerId = null;

@@ -7,7 +7,7 @@ import React from 'react'
 class SubmitStatus extends React.Component {
     render() {
         const {serverResponse} = this.props;
-        // if status isn't one of the below events, its left hidden
+        // if status isn't one of the below events, it remains hidden
         let css = 'hide';
         let content;
 
@@ -16,12 +16,13 @@ class SubmitStatus extends React.Component {
 
             const {status} = serverResponse;
             if (status === 'waiting') {
-                css += "alert-info";
+                css += "core-heading";
                 content = <p><span className="glyphicon glyphicon-refresh spinning-gylphicon"> </span> Submitting, please wait...</p>
             } else if (status === 'timeout') {
                 css += "alert-danger";
                 content = <p><span><strong>Timeout error</strong></span> Unable to reach the server, please try again</p>
             } else if (status === 'error') {
+                // will handle database issues, specific type of issue is available in errorEvent property.
                 css += "alert-danger";
                 content = <p><span><strong>Error</strong></span> {serverResponse.reason}</p>
             } else if (status === 'ok') {

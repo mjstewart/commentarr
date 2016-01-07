@@ -2,11 +2,13 @@ import React from 'react'
 
 class CreateVoteButton extends React.Component {
     render() {
+        const {serverResponse} = this.props;
        // console.log("CreateCommentButton render");
         return (
             <button type="button"
-                    className={this.props.displayVoteForm ? "btn btn-warning btn-block" : "btn btn-primary btn-block core-heading"}
-                    onClick={this.props.toggleVoteForm}>
+                    className={this.props.displayCreateCommentForm ? "btn btn-warning btn-block" : "btn btn-primary btn-block core-heading"}
+                    onClick={this.props.toggleCommentForm}
+                    disabled={serverResponse.event === "comment create" && serverResponse.status === "waiting"}>
                 {this.props.displayVoteForm ? "Close" : "Create new comment"}
             </button>
         )
@@ -14,8 +16,9 @@ class CreateVoteButton extends React.Component {
 }
 
 CreateVoteButton.propTypes = {
-    displayVoteForm: React.PropTypes.bool.isRequired,
-    toggleVoteForm: React.PropTypes.func.isRequired
+    displayCreateCommentForm: React.PropTypes.bool.isRequired,
+    toggleCommentForm: React.PropTypes.func.isRequired,
+    serverResponse: React.PropTypes.object.isRequired
 };
 
 export default CreateVoteButton

@@ -41,6 +41,7 @@ public class CommentWebSocketServer {
 
     @OnError
     public void onError(Session session, Throwable error) {
+        System.out.println("server on error " + error.getClass());
         System.out.println("server onError -> " + session.getId() + " error=" + error.getMessage());
     }
 
@@ -68,6 +69,16 @@ public class CommentWebSocketServer {
                 System.out.println("comment update received");
                 commentEventHandler.onUpdateComment(session, data);
                 break;
+            case "comment delete":
+                data = jsonObject.getJsonObject("data");
+                System.out.println("comment delete received");
+                commentEventHandler.onDeleteComment(session, data);
+                break;
+            case "comment getAll":
+                System.out.println("comment getAll received");
+                commentEventHandler.onGetAllComments(session);
+                break;
+
         }
     }
 }
