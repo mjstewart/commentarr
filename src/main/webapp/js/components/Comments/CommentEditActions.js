@@ -1,5 +1,8 @@
 import React from 'react';
 
+/**
+ * Contains delete and report comment plus any other editing controls.
+ */
 class CommentEditActions extends React.Component {
 
     onDeleteComment() {

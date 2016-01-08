@@ -140,6 +140,18 @@ class CommentForm extends React.Component {
         });
     }
 
+    /**
+     * If the serverResponse event is empty or waiting, the form cant be submitted as the submit button is disabled so
+     * no events should fire when clicking into a field.
+     *
+     * Any other event we will call removeCommentSubmitStatus as that will clear the forms submit status.
+     *
+     * @returns {*}
+     */
+    getValidatableFieldOnClickHandler() {
+        return this.props.serverResponse.event === '' || this.props.serverResponse.event === "waiting"
+            ? null : this.props.removeCommentSubmitStatus;
+    }
 
     render() {
         console.log("CommentForm render");
@@ -149,30 +161,28 @@ class CommentForm extends React.Component {
                 <ValidatableField label="Author" id="authorInput" type="text" placeholder="Author"
                                   value={this.state.author}
                                   onChange={this.handleInput("author").bind(this)}
-                                  onClick={this.props.serverResponse.event === ''
-                                  ? null : this.props.removeCommentSubmitStatus}
+                                  onClick={this.getValidatableFieldOnClickHandler.bind(this)}
                                   errorMessage={this.state.validationErrors.get('author')}
                                   autoFocus={true}/>
 
                 <ValidatableField label="Title" id="titleInput" type="text" placeholder="Title"
                                   value={this.state.title}
                                   onChange={this.handleInput("title").bind(this)}
-                                  onClick={this.props.serverResponse.event === ''
-                                  ? null : this.props.removeCommentSubmitStatus}
+                                  onClick={this.getValidatableFieldOnClickHandler.bind(this)}
                                   errorMessage={this.state.validationErrors.get('title')}/>
 
                 <ValidatableField label="Message" id="messageInput" type="textarea" placeholder="Type in your vote message"
                                   value={this.state.message}
                                   onChange={this.handleInput("message").bind(this)}
-                                  onClick={this.props.serverResponse.event === ''
-                                  ? null : this.props.removeCommentSubmitStatus}
+                                  onClick={this.getValidatableFieldOnClickHandler.bind(this)}
                                   errorMessage={this.state.validationErrors.get('message')}/>
 
                 <button type="submit" className="btn btn-primary center-block core-heading"
                         onClick={this.onSubmit.bind(this)}
                         disabled={this.props.serverResponse.status === "waiting"}>Submit</button>
 
-                <SubmitStatus serverResponse={this.props.serverResponse} removeCommentSubmitStatus={this.props.removeCommentSubmitStatus} />
+                <SubmitStatus serverResponse={this.props.serverResponse}
+                              removeCommentSubmitStatus={this.props.removeCommentSubmitStatus} />
             </form>
         )
     }

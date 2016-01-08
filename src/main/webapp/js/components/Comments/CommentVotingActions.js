@@ -46,5 +46,5 @@ CommentVotingActions.propTypes = {
     updateComment: React.PropTypes.func.isRequired
 };
 
-export default CommentVotingActions
+export default CommentVotingActions;
 

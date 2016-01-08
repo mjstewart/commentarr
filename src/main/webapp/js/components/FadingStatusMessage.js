@@ -2,12 +2,13 @@ import React from 'react';
 
 class FadingStatusMessage extends React.Component {
     componentDidMount() {
-        setTimeout(() => this.refs.alertBox.className = 'hide', 5000);
+       setTimeout(() => this.refs.alertBox.className = 'hide', 7000);
     }
 
     render() {
-        let css = `alert ${this.props.cssAlertType} margin-all-md with-fadeout`;
-
+        let css = `alert ${this.props.cssAlertType} smaller-alert with-fadeout`;
+        console.log("FadingStatusMessage css=");
+        console.log(css);
         return (
             <div className={css} role="alert" ref="alertBox">
                 <p><strong>{this.props.title}</strong> {this.props.message}</p>
@@ -22,5 +23,5 @@ FadingStatusMessage.propTypes = {
     cssAlertType: React.PropTypes.string.isRequired,
 };
 
-export default FadingStatusMessage
+export default FadingStatusMessage;
 

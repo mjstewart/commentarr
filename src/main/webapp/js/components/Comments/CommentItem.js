@@ -6,15 +6,50 @@ import moment from 'moment';
 
 class CommentItem extends React.Component {
 
+    componentWillReceiveProps(nextProps) {
+        if (this.props.serverResponse.status === "waiting" && this.isEventForUs.bind(this)()) {
+            if (nextProps.serverResponse.status !== "timeout") {
+                // not really needed because timeout is only for when web socket server goes down, in which case
+                // the entire feed closes down, but clearing timeout timer might be a good idea anyway just in case.
+                clearTimeout(this.props.serverResponse.timerId);
+            }
+        }
+    }
+
+    /**
+     * Must only be called if status is 'waiting' or 'error' because the commentId will only be present for these.
+     *
+     * @returns {boolean}
+     */
+    isEventForUs() {
+        const {event} = this.props.serverResponse;
+        const {commentId} = this.props.serverResponse;
+        const matchingCommentId =  commentId === this.props.comment.id;
+        return ((event === "comment update" || event === "comment delete") && matchingCommentId);
+    }
+
     getStatusPanel() {
-        const status = this.props.serverResponse;
-        //return status === null ? null : status.saved ? null : (
-        //        <FadingStatusMessage title="Error" message=" can't connected to server" cssAlertType="alert-danger"/>
-       //     );
-        return <FadingStatusMessage title="Error" message=" can't connected to server" cssAlertType="alert-danger"/>
+        const {status} = this.props.serverResponse;
+        if (status === "waiting" && this.isEventForUs.bind(this)()) {
+            return (<div className="alert alert-info smaller-alert with-fadein" role="alert">
+                <p><span className="glyphicon glyphicon-refresh spinning-gylphicon"></span> It's taking a little longer than normal, please wait...</p>
+            </div>)
+        } else if (status === "error" && this.isEventForUs.bind(this)()) {
+            return <FadingStatusMessage title="Sorry, there's been an error, here's what we can tell you:"
+                                        message={this.props.serverResponse.reason}
+                                        cssAlertType="alert-danger"/>
+        } else {
+            // if successful don't display anything
+            return null;
+        }
     }
 
 
+    /**
+     * Gets the full date created format and last updated time ago.
+     *
+     * @returns {{fullFormat: *, lastUpdatedTimeAgo: *}}
+     */
     getDateStats() {
         const {comment} = this.props;
         let date = moment(comment.dateCreated);
@@ -48,14 +83,16 @@ class CommentItem extends React.Component {
                     <textarea id="message-textarea" defaultValue={comment.message}></textarea>
                     <div className="margin-top-sm top-border message-metadata">
                         <span>Posted on {dateStats.fullFormat}</span>
-                        <span className="margin-left-lg lighter-text">(Last updated {dateStats.lastUpdatedTimeAgo})</span>
                         <span className="pull-right">By {comment.author}</span>
+                        <p><span className="lighter-text">(Last updated {dateStats.lastUpdatedTimeAgo})</span></p>
                     </div>
                 </div>
                 <div className="panel-footer position-relative">
                     <CommentEditActions {...this.props}/>
                 </div>
-                {this.getStatusPanel()}
+                <div>
+                    {this.getStatusPanel.bind(this)()}
+                </div>
             </div>
         )
     }
@@ -68,5 +105,5 @@ CommentItem.propTypes = {
     deleteComment: React.PropTypes.func.isRequired
 };
 
-export default CommentItem
+export default CommentItem;
 

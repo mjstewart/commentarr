@@ -36,7 +36,8 @@ class CommentFeed extends React.Component {
             connected: false,
 
             // flag used to provide reloading feedback to user if no comments were received due to database error
-            failedInitialCommentFetch: true,
+            // logic in error function requires this to start as true
+            databaseOffline: true,
 
             /*
              * Encapsulates server response details used to provide user feedback.
@@ -49,10 +50,14 @@ class CommentFeed extends React.Component {
              * 'error' - reason
              * 'waiting' - timerId (so children components can cancel this timer id on server response)
              *
+             * timestamp is to allow us tell the difference in state changes for example up voting a comment 3 times
+             * in a row and being able to tell if the server has responded in order to synchronize the timing
+             * of ui feedback status using mostly in CommentItem status.
              */
             serverResponse: {
                 event: '',
-                status: ''
+                status: '',
+                timestamp: ''
             },
 
             displayFeedSettingControls: false,
@@ -130,7 +135,8 @@ class CommentFeed extends React.Component {
             connected: false,
             serverResponse: {
                 event: '',
-                status: ''
+                status: '',
+                timestamp: ''
             }
         });
     }
@@ -142,7 +148,8 @@ class CommentFeed extends React.Component {
         this.setState({
             serverResponse: {
                 event: 'comment getAll',
-                status: 'waiting'
+                status: 'waiting',
+                timestamp: new Date()
             }
         });
         this.socket.emit('comment getAll');
@@ -157,18 +164,18 @@ class CommentFeed extends React.Component {
         console.log("onGetallComments");
         console.log(json);
         const commentArray = JSON.parse(json.comments);
+        const immutableCommentList = Immutable.List(commentArray);
 
-
-
-        console.log(commentArray);
+        console.log(immutableCommentList);
 
         this.setState({
             serverResponse: {
                 event: 'comment getAll',
-                status: 'ok'
+                status: 'ok',
+                timestamp: new Date()
             },
-            failedInitialCommentFetch: false,
-            comments: this.sort(commentArray, this.state.sortSettings.comparator)
+            databaseOffline: false,
+            comments: this.sort(immutableCommentList, this.state.sortSettings.comparator)
         });
     }
 
@@ -188,9 +195,10 @@ class CommentFeed extends React.Component {
         this.setState({
             serverResponse: {
                 event: 'subscribe comments',
-                status: 'ok'
+                status: 'ok',
+                timestamp: new Date()
             },
-            failedInitialCommentFetch: false,
+            databaseOffline: false,
             comments: this.sort(immutableCommentList, this.state.sortSettings.comparator)
         });
     }
@@ -205,7 +213,7 @@ class CommentFeed extends React.Component {
 
         // don't clear waiting status otherwise other components waiting ui feedback will clear
         this.setState({
-            displayVoteForm: !this.state.displayVoteForm,
+            displayCreateCommentForm: !this.state.displayCreateCommentForm,
             serverResponse: {
                 event: status === "waiting" ? event : "",
                 status: status === "waiting" ? "waiting" : ""
@@ -239,7 +247,8 @@ class CommentFeed extends React.Component {
         this.setState({
             serverResponse: {
                 event: event,
-                status: 'timeout'
+                status: 'timeout',
+                timestamp: new Date()
             }
         });
     }
@@ -257,7 +266,8 @@ class CommentFeed extends React.Component {
         this.setState({
             serverResponse: {
                 event: serverResponse.event,
-                status: serverResponse.status
+                status: serverResponse.status,
+                timestamp: new Date()
             }
         });
 
@@ -278,7 +288,8 @@ class CommentFeed extends React.Component {
             serverResponse: {
                 event: 'comment create',
                 status: 'waiting',
-                timerId: setTimeout(() => this.onServerTimeout('comment create'), 20000)
+                timerId: setTimeout(() => this.onServerTimeout('comment create'), 20000),
+                timestamp: new Date()
             }
         });
     }
@@ -302,7 +313,8 @@ class CommentFeed extends React.Component {
                 comments: this.filterAndSort(
                     this.state.comments.push(comment),
                     this.state.sortSettings.comparator,
-                    this.state.commentFilter.filterFn)
+                    this.state.commentFilter.filterFn),
+                timestamp: new Date()
             });
         } else {
             // filter is on, cache the deleted comment so it can be merged back when filter is removed.
@@ -313,7 +325,8 @@ class CommentFeed extends React.Component {
                     this.state.comments.push(comment),
                     this.state.sortSettings.comparator,
                     this.state.commentFilter.filterFn),
-                newCommentsForCache: this.state.newCommentsForCache.push(comment)
+                newCommentsForCache: this.state.newCommentsForCache.push(comment),
+                timestamp: new Date()
             });
         }
 
@@ -343,6 +356,48 @@ class CommentFeed extends React.Component {
     updateComment(comment, field) {
         console.log("updateComment");
         console.log(comment);
+
+
+        const beforeEvent = this.state.serverResponse.event;
+        const beforeStatus = this.state.serverResponse.status;
+        const beforeTimestamp = this.state.serverResponse.timestamp;
+
+        /*
+         * This is just for ui feedback to make it nicer when the server is fast at responding nothing will show up
+         * in the waiting status, otherwise the waiting status flashes up for an immediate server response which makes
+         * it a little ugly.
+         *
+         * If the status 1 second ago is still the same as it is when the call back timer
+         * function is run, then we obviously haven't heard back from the server so set the state to waiting which
+         * causes the CommentItem to display waiting feedback. The state before the callback is invoked
+         * is kept in beforeEvent/Status above. The timestamp is used to handle the case where the user votes
+         * for the same comment consecutively. Without the timestamp the serverResponse state would be the same
+         * even though the server successfully responded which causes the waiting feedback to still display.
+         */
+        setTimeout(function() {
+            const {event} = this.state.serverResponse;
+            const {status} = this.state.serverResponse;
+            const {timestamp} = this.state.serverResponse;
+            if (event === beforeEvent && status === beforeStatus && timestamp === beforeTimestamp) {
+                /*
+                 * timer provided so CommentItem can stop the timer if response from server is received
+                 * the timer needs to be greater than database timeout so we can differentiate between the 2.
+                 * commentId provided so the specific CommentItem shows the status, not every comment.
+                 */
+                this.setState({
+                    serverResponse: {
+                        event: 'comment update',
+                        status: 'waiting',
+                        commentId: comment.id,
+                        timerId: setTimeout(() => this.onServerTimeout('comment update'), 20000),
+                        timestamp: new Date()
+                    }
+                });
+            }
+        }.bind(this), 1000);
+        console.log("state must have changed in onUpdate so no need to display waiting");
+
+
         const data = {
             updateField: field,
             comment: comment
@@ -367,15 +422,30 @@ class CommentFeed extends React.Component {
         newComments = newComments.push(comment);
         newComments = this.filterAndSort(newComments, this.state.sortSettings.comparator, this.state.commentFilter.filterFn);
 
+
+        // clear the timer since a call to this function means server sent an updated comment
+        // setting status to ok with commentId allows the specific CommentItem to show feedback if coded to do so
+        const serverResponse = {
+            event: 'comment update',
+            status: 'ok',
+            commentId: comment.id,
+            timestamp: new Date()
+        };
+        clearTimeout(this.state.serverResponse.timerId);
+
+
+
         if (this.state.commentFilter.filterName == null) {
             // the updateCache isn't created here as initial state sets it up and is recreated every time filter is cleared
             this.setState({
-                comments: newComments
+                comments: newComments,
+                serverResponse: serverResponse
             });
         } else {
             // filter is on, cache the deleted comment so it can be merged back when filter is removed.
             this.setState({
                 comments: newComments,
+                serverResponse: serverResponse,
                 updatedCommentsForCache: this.state.updatedCommentsForCache.set(comment.id, comment)
             });
         }
@@ -427,7 +497,6 @@ class CommentFeed extends React.Component {
     }
 
 
-
     /**
      * Server tells us there is an error
      *
@@ -436,7 +505,11 @@ class CommentFeed extends React.Component {
      * event status keys.
      *
      * Example json format
-     * { event: 'comment add' errorEvent: 'database offline', status: 'error' reason: 'server timeout' }
+     * { event: 'comment add' errorEvent: 'database offline', status: 'error' reason: 'server timeout', commentId: 'abc' }
+     *
+     * The commentId field may not have any value, the server sends it to identify what record was being modified
+     * if it was update or delete and the ui uses it to identify the CommentItem to show feedback errors on,
+     * but since there are other actions like get all / subscribe, the commentId isn't applicable.
      *
      * @param error the error object sent from server
      */
@@ -445,21 +518,33 @@ class CommentFeed extends React.Component {
         console.log(error);
 
         if (typeof error !== "undefined") {
-            if (this.state.failedInitialCommentFetch && error.errorEvent === "database offline") {
-                // failedInitialCommentFetch is true to begin with, so if its still true this is the first db error
+            if (error.performingAction === "comment update" || error.performingAction === "comment delete") {
+                // server will include a commentId field for these events.
+                this.setState({
+                    serverResponse: {
+                        event: error.performingAction,
+                        errorEvent: error.errorEvent,
+                        status: error.event,
+                        reason: error.reason,
+                        commentId: error.commentId,
+                        timestamp: new Date()
+                    },
+                    databaseOffline: (this.state.databaseOffline
+                    && error.errorEvent === "database offline")
+                });
+            } else {
+                this.setState({
+                    serverResponse: {
+                        event: error.performingAction,
+                        errorEvent: error.errorEvent,
+                        status: error.event,
+                        reason: error.reason,
+                        timestamp: new Date()
+                    },
+                    databaseOffline: (this.state.databaseOffline
+                    && error.errorEvent === "database offline")
+                });
             }
-
-            this.setState({
-                serverResponse: {
-                    event: error.performingAction,
-                    errorEvent: error.errorEvent,
-                    status: error.event,
-                    reason: error.reason
-                },
-
-                failedInitialCommentFetch: (this.state.failedInitialCommentFetch
-                && error.errorEvent === "database offline")
-            });
         }
     }
 
@@ -638,7 +723,7 @@ class CommentFeed extends React.Component {
                         toggleCommentForm={this.toggleCommentForm.bind(this)}
                         serverResponse={this.state.serverResponse}/>
 
-                    {this.state.displayVoteForm ?
+                    {this.state.displayCreateCommentForm ?
                         <CommentForm createComment={this.createComment.bind(this)}
                                      serverResponse={this.state.serverResponse}
                                      removeCommentSubmitStatus={this.removeCommentSubmitStatus.bind(this)} /> : null}
@@ -660,7 +745,7 @@ class CommentFeed extends React.Component {
                                  updateComment={this.updateComment.bind(this)}
                                  deleteComment={this.deleteComment.bind(this)}
                                  getAllComments={this.getAllComments.bind(this)}
-                                 failedInitialCommentFetch={this.state.failedInitialCommentFetch}/>
+                                 databaseOffline={this.state.databaseOffline}/>
                 </div>)
         } else {
                 return (<div className="alert alert-dismissible margin-top-sm alert-warning" role="alert">

@@ -225,20 +225,33 @@ textarea {
     animation-duration: 5s;
 }
 
+.smaller-alert {
+    margin: 10px 50px 10px 50px;
+}
+
 .with-fadeout {
     animation-duration: 10s;
     animation-name: fadeout;
 }
 
-@keyframes fadeout {
-    from {
-        opacity: 1;
-    }
-
-    to {
-        opacity: 0;
-    }
+.with-fadein {
+    animation: fadein 1s;
 }
+
+@keyframes fadeout {
+    from {  opacity: 1;  }
+    to {  opacity: 0;  }
+}
+
+@keyframes fadein {
+    from {  opacity: 0;  }
+    to {  opacity: 1;  }
+}
+
+
+
+
+
 
 .hide {
     display: none;

@@ -48,7 +48,7 @@ public class CommentEventHandler {
             System.out.println(commentsJson);
         } catch (MongoException e) {
             System.out.println("IN onSubscribeComments but error " + e.getMessage());
-            sendDBOfflineError(session, "subscribe comments");
+            sendDBOfflineError(session, "subscribe comments", null);
         }
     }
 
@@ -66,7 +66,7 @@ public class CommentEventHandler {
             System.out.println(commentsJson);
         } catch (MongoException e) {
             System.out.println("IN onGetAllComments but error " + e.getMessage());
-            sendDBOfflineError(session, "comment getAll");
+            sendDBOfflineError(session, "comment getAll", null);
         }
     }
 
@@ -104,12 +104,12 @@ public class CommentEventHandler {
                 sessionHandler.sendMessage(session, commentCreatedReply.toString());
                 sessionHandler.sendToCommentSubscribers(addCommentReply.toString());
             } else {
-                sendDBModifyError(session, "comment create", "Unable to save to database");
+                sendDBModifyError(session, "comment create", "Unable to save to database", null);
             }
         } catch (IOException e) {
             sendError(session, "data format", "comment create", "Invalid data format sent from client to server");
         } catch (MongoException e) {
-            sendDBOfflineError(session, "comment create");
+            sendDBOfflineError(session, "comment create", null);
         }
     }
 
@@ -119,8 +119,9 @@ public class CommentEventHandler {
      * @param data JsonObject containing 2 keys, updateField and comment which is an object type
      */
     public void onUpdateComment(Session session, JsonObject data) {
+        Comment comment = null;
         try {
-            Comment comment = objectMapper.readValue(data.getJsonObject("comment").toString(), Comment.class);
+            comment = objectMapper.readValue(data.getJsonObject("comment").toString(), Comment.class);
             System.out.println("in onUpdateComment");
             System.out.println(comment);
             if (repository.update(comment)) {
@@ -131,12 +132,12 @@ public class CommentEventHandler {
                 sessionHandler.sendToCommentSubscribers(commentUpdatedReply.toString());
             } else {
                 // notify original updater comment cant be updated
-                sendDBModifyError(session, "comment update", "Unable to update comment to database");
+                sendDBModifyError(session, "comment update", "Unable to update comment to database", comment.getId());
             }
         } catch (IOException e) {
             e.printStackTrace();
         } catch (MongoException e) {
-            sendDBOfflineError(session, "comment update");
+            sendDBOfflineError(session, "comment update", comment.getId());
         }
     }
 
@@ -146,8 +147,9 @@ public class CommentEventHandler {
      * @param jsonComment JsonObject which is the comment
      */
     public void onDeleteComment(Session session, JsonObject jsonComment) {
+        Comment comment = null;
         try {
-            Comment comment = objectMapper.readValue(jsonComment.toString(), Comment.class);
+            comment = objectMapper.readValue(jsonComment.toString(), Comment.class);
             System.out.println("in onDeleteComment");
             System.out.println(comment);
             if (repository.delete(comment)) {
@@ -158,12 +160,12 @@ public class CommentEventHandler {
                 sessionHandler.sendToCommentSubscribers(commentDeleteReply.toString());
             } else {
                 // notify original updater comment cant be updated
-                sendDBModifyError(session, "comment delete", "Unable to delete comment from database");
+                sendDBModifyError(session, "comment delete", "Unable to delete comment from database", comment.getId());
             }
         } catch (IOException e) {
             e.printStackTrace();
         } catch (MongoException e) {
-            sendDBOfflineError(session, "comment delete");
+            sendDBOfflineError(session, "comment delete", comment.getId());
         }
     }
 
@@ -180,13 +182,46 @@ public class CommentEventHandler {
         }
     }
 
-    private void sendDBOfflineError(Session session, String performingAction) {
-        sendError(session, "database offline", performingAction, "Database is offline");
+    private void sendDBOfflineError(Session session, String performingAction, String commentId) {
+        sendError(session, "database offline", performingAction, "Database is offline", commentId);
     }
 
-    private void sendDBModifyError(Session session, String performingAction, String reason) {
-        sendError(session, "database modify", performingAction, reason);
+    private void sendDBModifyError(Session session, String performingAction, String reason, String commentId) {
+        sendError(session, "database modify", performingAction, reason, commentId);
     }
+
+    /**
+     *
+     * @param session who to send message to
+     * @param errorEvent the major event to identify error by such as 'database offline'
+     * @param performingAction when the error occurred, what action was being performed such as 'comment create'
+     * @param reason short description of further info
+     * @param commentId id field in comment to identify comment being actioned at the time
+     */
+    private void sendError(Session session, String errorEvent, String performingAction, String reason, String commentId) {
+        JsonObject errorReply = null;
+        if (commentId == null) {
+            errorReply = Json.createObjectBuilder()
+                    .add("event", "error")
+                    .add("errorEvent", errorEvent)
+                    .add("performingAction", performingAction)
+                    .add("reason", reason)
+                    .build();
+        } else {
+            errorReply = Json.createObjectBuilder()
+                    .add("event", "error")
+                    .add("errorEvent", errorEvent)
+                    .add("performingAction", performingAction)
+                    .add("reason", reason)
+                    .add("commentId", commentId)
+                    .build();
+        }
+
+        System.out.println("Sending Error of");
+        System.out.println(errorReply.toString());
+        sessionHandler.sendMessage(session, errorReply.toString());
+    }
+
 
     /**
      *
@@ -196,13 +231,7 @@ public class CommentEventHandler {
      * @param reason short description of further info
      */
     private void sendError(Session session, String errorEvent, String performingAction, String reason) {
-        JsonObject errorReply = Json.createObjectBuilder()
-                .add("event", "error")
-                .add("errorEvent", errorEvent)
-                .add("performingAction", performingAction)
-                .add("reason", reason)
-                .build();
-        sessionHandler.sendMessage(session, errorReply.toString());
+        sendError(session, errorEvent, performingAction, reason, null);
     }
 
 

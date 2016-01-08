@@ -294,7 +294,7 @@ class FeedSettingControls extends React.Component {
                     </div>
 
                     <div className="row">
-                        <div className="col-lg-4">
+                        <div className="col-lg-4 col-md-6 col-sm-6">
                             {this.getFilterByAuthorControl.bind(this)()}
                         </div>
                     </div>

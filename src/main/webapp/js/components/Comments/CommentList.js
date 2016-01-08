@@ -9,7 +9,7 @@ class CommentList extends React.Component {
      * loading of the data failed so they will need to press a button to try again.
      */
     showRefreshCommentListRequired() {
-        return !this.isDatabaseOffline() && this.props.failedInitialCommentFetch;
+        return !this.isDatabaseOffline() && this.props.databaseOffline;
     }
 
     /**
@@ -35,6 +35,13 @@ class CommentList extends React.Component {
     }
 
 
+    /**
+     * Returns true if its an event the CommentList is interested about.
+     * Only 'subscribe comments' and 'comment getAll' will cause a server request to fetch all comments.
+     *
+     * @param event the event to check
+     * @returns {boolean}
+     */
     isEventForUs(event) {
         return event === "subscribe comments" || event === "comment getAll";
     }
@@ -123,7 +130,7 @@ CommentList.propTypes = {
     updateComment: React.PropTypes.func.isRequired,
     deleteComment: React.PropTypes.func.isRequired,
     getAllComments: React.PropTypes.func.isRequired,
-    failedInitialCommentFetch: React.PropTypes.bool.isRequired
+    databaseOffline: React.PropTypes.bool.isRequired
 };
 
 export default CommentList;
