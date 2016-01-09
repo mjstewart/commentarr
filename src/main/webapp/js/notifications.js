@@ -13,12 +13,10 @@ class NotificationBar {
     }
 
     showNotification(message) {
-        console.log("in showNotification for ################# " + message);
+        console.log(this.displaying);
         if (this.displaying) {
-            console.log("currently displaying");
             this.notificationMessage.text(message);
             this.onAlreadyDisplaying();
-
             this.resetTimer();
         } else {
             this.notificationMessage.text(message);
@@ -30,7 +28,6 @@ class NotificationBar {
 
     onAlreadyDisplaying() {
         this.addCssClass("animated bounce");
-
         // once done, slide bar back up, if more updates comee it stops bar going up as per first line.
         this.notifyDiv.one('webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend',
             () => this.notifyDiv.addClass("slideOutUp"));
@@ -48,10 +45,10 @@ class NotificationBar {
      * many incoming notifications. When notifications end, the notification bar will go away.
      */
     resetTimer() {
-        console.log("clearing and resetting timer");
+        console.log("NotificationBar clearing and resetting timer");
         clearTimeout(this.timerId);
         this.timerId = setTimeout(() => {
-            console.log("main timer expired, should be lifting back up and hiding?");
+            console.log("NotificationBar main timer expired, should be lifting back up and hiding?");
             // remove all classes and slide bar back up
             this.addCssClass("animated slideOutUp");
             this.displaying = false;

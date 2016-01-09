@@ -11,6 +11,7 @@ class CommentVotingActions extends React.Component {
      */
     onVoteCountChange(up) {
         return function() {
+            console.log("ON VOTE CHANGE !!");
             const newCount = up ? this.props.comment.voteCount + 1 : this.props.comment.voteCount - 1;
             this.props.updateComment(Object.assign({}, this.props.comment,
                 {voteCount: newCount, dateLastUpdated: new Date()}), "voteCount");
@@ -27,13 +28,17 @@ class CommentVotingActions extends React.Component {
         } else {
             badgeCss = "badge neutral";
         }
+
+        let coreButtonCss = "btn btn-xs btn-primary margin-left-sm core-heading";
+        coreButtonCss = (this.props.disabled) ? coreButtonCss + " wait-cursor" : coreButtonCss;
+
         return (
             <div>
                 <label>Votes <span className={badgeCss}>{count}</span></label>
-                <button type="button" className="btn btn-xs btn-primary margin-left-sm core-heading"
+                <button type="button" className={coreButtonCss} disabled={this.props.disabled}
                         onClick={this.onVoteCountChange(true).bind(this)}>
                     <span className="glyphicon glyphicon-arrow-up"> </span></button>
-                <button type="button" className="btn btn-xs btn-primary margin-left-xs core-heading"
+                <button type="button" className={coreButtonCss} disabled={this.props.disabled}
                         onClick={this.onVoteCountChange(false).bind(this)}>
                     <span className="glyphicon glyphicon-arrow-down"> </span></button>
             </div>
@@ -43,7 +48,8 @@ class CommentVotingActions extends React.Component {
 
 CommentVotingActions.propTypes = {
     comment: React.PropTypes.object.isRequired,
-    updateComment: React.PropTypes.func.isRequired
+    updateComment: React.PropTypes.func.isRequired,
+    disabled: React.PropTypes.bool.isRequired
 };
 
 export default CommentVotingActions;

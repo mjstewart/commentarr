@@ -1,8 +1,10 @@
 import React from 'react';
 import CommentItem from './CommentItem';
 
+/**
+ * Contains the list of CommentItems.
+ */
 class CommentList extends React.Component {
-
 
     /**
      * Only return true when isDatebaseOffline is false, because this alert is just to let user know the initial
@@ -13,7 +15,6 @@ class CommentList extends React.Component {
     }
 
     /**
-     *
      * returns true if Database is offline for this Component.
      */
     isDatabaseOffline() {
@@ -27,7 +28,7 @@ class CommentList extends React.Component {
         return (
             (<div className="alert alert-dismissible margin-top-sm alert-warning" role="alert">
                 <p><span className="glyphicon glyphicon-info-sign glyphicon-md margin-right-sm"> </span>
-                    Sorry, we're currently experiencing database connection errors.
+                    Sorry, we're currently experiencing database connection issues. try refreshing
                     <span className="glyphicon glyphicon-refresh margin-left-md hoverable-cursor"
                           data-toggle="tooltip" title="refresh" onClick={this.props.getAllComments}> </span></p>
             </div>)
@@ -50,6 +51,11 @@ class CommentList extends React.Component {
         return status === "waiting" && this.isEventForUs(event);
     }
 
+    /**
+     * The header to show when there are issues fetching comments from server but user navigates elsewhere on the page.
+     *
+     * @returns {XML}
+     */
     getRefreshCommentListHeader() {
         return (<div id="refresh-comments-warning">
             <h3>Comments ({this.props.comments.size})</h3>
@@ -77,15 +83,18 @@ class CommentList extends React.Component {
         }
     }
 
+    /**
+     * Returns the list of CommentItems only if no errors, otherwise returns the appropriate error status.
+     *
+     * @returns {*}
+     */
     getPanelBody() {
         const serverResponse = this.props.serverResponse;
 
         if (this.isWaitingForServer(serverResponse.status, serverResponse.event)) {
-            console.log("CommentList, isWaitingForServer");
-            // only show the header loading
+            // prevents the body from showing if we're still waiting, makes it look nicer without an empty body.
             return null;
         } else if (this.isDatabaseOffline.bind(this)()) {
-            console.log("CommentList, Database is offline");
             return (
                 <div className="panel-body">
                     {this.getDatabaseOfflineError()}
@@ -112,7 +121,6 @@ class CommentList extends React.Component {
 
     render() {
         console.log("CommentList render");
-        console.log(this.props.serverResponse);
         return  (
             <div className="panel panel-primary core-border">
                 <div className="panel-heading core-heading">

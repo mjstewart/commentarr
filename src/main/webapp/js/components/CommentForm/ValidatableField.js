@@ -1,10 +1,12 @@
-import React from 'react'
+import React from 'react';
 
 /**
  * Encapsulates a fields validation styles
  */
 class ValidatableField extends React.Component {
+
     render() {
+        // if true, don't display any error feedback for the field.
         const isValid = this.props.errorMessage === '';
 
         return (
@@ -40,13 +42,13 @@ ValidatableField.propTypes = {
     value: React.PropTypes.string.isRequired,
     onChange: React.PropTypes.func.isRequired,
     errorMessage: React.PropTypes.string.isRequired,
-    onClick: React.PropTypes.func,
+    onClick: React.PropTypes.func
 };
 
 ValidatableField.defaultProps = {
     autoFocus: false
 };
 
-export default ValidatableField
+export default ValidatableField;
 
 

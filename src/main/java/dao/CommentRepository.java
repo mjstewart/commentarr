@@ -35,6 +35,8 @@ public class CommentRepository {
 
     public boolean delete(Comment comment) throws MongoException {
         WriteResult delete = datastore.delete(comment, WriteConcern.ACKNOWLEDGED);
+        System.out.println("CommentRepository delete");
+        System.out.println(delete);
         return delete.getN() == 1;
     }
 

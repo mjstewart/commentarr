@@ -15,14 +15,20 @@ class CommentEditActions extends React.Component {
     }
 
     render() {
+        const {disabled} = this.props;
+
         return (
             <div className="row">
                 <div className="col-lg-8">
-                    <span className="glyphicon glyphicon-trash hoverable-cursor" data-toggle="tooltip"
-                          data-placement="top" title="Delete comment" onClick={this.onDeleteComment.bind(this)}> </span>
+                    <span className={disabled ? "glyphicon glyphicon-trash wait-cursor grey-out"
+                    : "glyphicon glyphicon-trash hoverable-cursor"}
+                          data-toggle="tooltip"
+                          data-placement="top" title="Delete comment"
+                          onClick={disabled ? null : this.onDeleteComment.bind(this)}> </span>
                 </div>
                 <div className="col-lg-1 absolute-bottom-right">
-                    <p className="hoverable-cursor" onClick={this.onReportCountUpdate.bind(this)}>
+                    <p className={disabled ? "grey-out wait-cursor" : "hoverable-cursor"}
+                       onClick={disabled ? null : this.onReportCountUpdate.bind(this)}>
                         <span className="glyphicon glyphicon-flag"> </span> Report</p>
                 </div>
 
@@ -33,8 +39,9 @@ class CommentEditActions extends React.Component {
 
 CommentEditActions.propTypes = {
     comment: React.PropTypes.object.isRequired,
-    deleteComment: React.PropTypes.func.isRequired
+    deleteComment: React.PropTypes.func.isRequired,
+    disabled: React.PropTypes.bool.isRequired
 };
 
-export default CommentEditActions
+export default CommentEditActions;
 

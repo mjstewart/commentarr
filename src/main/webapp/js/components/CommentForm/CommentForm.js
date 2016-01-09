@@ -20,22 +20,22 @@ class CommentForm extends React.Component {
         }
     }
 
+    /**
+     * nextProps is the props right now, this.props refers to the last props.
+     *
+     * @param nextProps
+     */
     componentWillReceiveProps(nextProps) {
         console.log("CommmentForm componentWillReceiveProps");
         console.log(this.props.serverResponse);
         console.log(nextProps);
-        // nextProps are the current props, this.props refers to the previous props
 
         if (nextProps.serverResponse.status === 'error') {
             // prevents timeout error from displaying after error is displayed
+            // we first wait for db error, if no db error then wait for timeout response.
             clearTimeout(this.props.serverResponse.timerId);
-        } else if (this.props.serverResponse.status === 'waiting') {
-            if (nextProps.serverResponse.status === 'ok') {
-                // // last props was waiting, but now its ok, clear form ready for next submission
-                console.log("Was waiting for server but now heard back with a status of OK, clearing timer");
-                clearTimeout(this.props.serverResponse.timerId);
-                this.clearForm();
-            }
+        } else if (nextProps.serverResponse.status === 'ok') {
+            this.clearForm();
         }
     }
 
@@ -123,8 +123,8 @@ class CommentForm extends React.Component {
         if (!hasErrors) {
             const now = new Date();
             const comment = {
-                author: this.state.author,
-                title: this.state.title,
+                author: this.state.author.trim(),
+                title: this.state.title.trim(),
                 message: this.state.message,
                 voteCount: 0,
                 reports: 0,
@@ -161,20 +161,20 @@ class CommentForm extends React.Component {
                 <ValidatableField label="Author" id="authorInput" type="text" placeholder="Author"
                                   value={this.state.author}
                                   onChange={this.handleInput("author").bind(this)}
-                                  onClick={this.getValidatableFieldOnClickHandler.bind(this)}
+                                  onClick={this.getValidatableFieldOnClickHandler.bind(this)()}
                                   errorMessage={this.state.validationErrors.get('author')}
                                   autoFocus={true}/>
 
                 <ValidatableField label="Title" id="titleInput" type="text" placeholder="Title"
                                   value={this.state.title}
                                   onChange={this.handleInput("title").bind(this)}
-                                  onClick={this.getValidatableFieldOnClickHandler.bind(this)}
+                                  onClick={this.getValidatableFieldOnClickHandler.bind(this)()}
                                   errorMessage={this.state.validationErrors.get('title')}/>
 
                 <ValidatableField label="Message" id="messageInput" type="textarea" placeholder="Type in your vote message"
                                   value={this.state.message}
                                   onChange={this.handleInput("message").bind(this)}
-                                  onClick={this.getValidatableFieldOnClickHandler.bind(this)}
+                                  onClick={this.getValidatableFieldOnClickHandler.bind(this)()}
                                   errorMessage={this.state.validationErrors.get('message')}/>
 
                 <button type="submit" className="btn btn-primary center-block core-heading"
@@ -188,13 +188,14 @@ class CommentForm extends React.Component {
     }
 }
 
-export default CommentForm
-
 CommentForm.propTypes = {
     createComment: React.PropTypes.func.isRequired,
     removeCommentSubmitStatus: React.PropTypes.func.isRequired,
     serverResponse: React.PropTypes.object,
 };
+
+
+export default CommentForm;
 
 
 

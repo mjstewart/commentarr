@@ -1,7 +1,7 @@
 import React from 'react';
 import CommentVotingActions from './CommentVotingActions';
 import CommentEditActions from './CommentEditActions';
-import FadingStatusMessage from '../FadingStatusMessage';
+import FadingStatusMessage from '../StatusAlerts/FadingStatusMessage';
 import moment from 'moment';
 
 class CommentItem extends React.Component {
@@ -31,12 +31,16 @@ class CommentItem extends React.Component {
     getStatusPanel() {
         const {status} = this.props.serverResponse;
         if (status === "waiting" && this.isEventForUs.bind(this)()) {
-            return (<div className="alert alert-info smaller-alert with-fadein" role="alert">
-                <p><span className="glyphicon glyphicon-refresh spinning-gylphicon"></span> It's taking a little longer than normal, please wait...</p>
-            </div>)
+            return (
+                <div className="alert alert-info smaller-alert with-fadein" role="alert">
+                    <p><span className="glyphicon glyphicon-refresh spinning-gylphicon margin-right-xs"></span>
+                        It's taking a little longer than normal, please wait...</p>
+                </div>
+            )
         } else if (status === "error" && this.isEventForUs.bind(this)()) {
-            return <FadingStatusMessage title="Sorry, there's been an error, here's what we can tell you:"
-                                        message={this.props.serverResponse.reason}
+            // will occur with database errors
+            return <FadingStatusMessage title="Oops, there's been a slight error.."
+                                        message={this.props.serverResponse.reason + ", please try again"}
                                         cssAlertType="alert-danger"/>
         } else {
             // if successful don't display anything
@@ -61,7 +65,6 @@ class CommentItem extends React.Component {
     }
 
 
-
     render() {
         const dateStats = this.getDateStats();
         const {comment} = this.props;
@@ -75,7 +78,8 @@ class CommentItem extends React.Component {
                         </div>
                         <div className="col-lg-3 col-md-3 col-sm-5 col-xs-5">
                             <CommentVotingActions comment={this.props.comment}
-                                                  updateComment={this.props.updateComment}/>
+                                                  updateComment={this.props.updateComment}
+                                                  disabled={this.props.serverResponse.status === "waiting"}/>
                         </div>
                     </div>
                 </div>
@@ -88,7 +92,9 @@ class CommentItem extends React.Component {
                     </div>
                 </div>
                 <div className="panel-footer position-relative">
-                    <CommentEditActions {...this.props}/>
+                    <CommentEditActions comment={this.props.comment}
+                                        deleteComment={this.props.deleteComment}
+                                        disabled={this.props.serverResponse.status === "waiting"}/>
                 </div>
                 <div>
                     {this.getStatusPanel.bind(this)()}

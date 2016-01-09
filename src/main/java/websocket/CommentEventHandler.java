@@ -84,13 +84,14 @@ public class CommentEventHandler {
             Comment comment = objectMapper.readValue(data.toString(), Comment.class);
             // validate here I guess?
 
-            System.out.println("CommentEventHandler");
+            System.out.println("CommentEventHandler onCommentCreate");
             System.out.println(comment);
 
             if (repository.save(comment)) {
                 JsonObject commentCreatedReply = Json.createObjectBuilder()
                         .add("event", "comment create")
                         .add("status", "ok")
+                        .add("commentId", comment.getId())
                         .build();
 
                 String commentReply = toJSONString(comment);
@@ -164,7 +165,8 @@ public class CommentEventHandler {
             }
         } catch (IOException e) {
             e.printStackTrace();
-        } catch (MongoException e) {
+        } catch (RuntimeException e) {
+            // comment will always be initialized otherwise IOException will be thrown if objectMapper fails.
             sendDBOfflineError(session, "comment delete", comment.getId());
         }
     }

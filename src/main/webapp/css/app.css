@@ -60,6 +60,10 @@
     color: #74828F;
 }
 
+.grey-out {
+    color: #74828F;
+}
+
 .core-heading {
     background: #74828F !important;
     color: white;
@@ -70,17 +74,40 @@
     border-color: #74828F !important;
 }
 
+
 .jumbotron {
     background: #AEA8D3 !important;
 }
 
-.jumbotron > h1 {
-    letter-spacing: 8px;
+#header {
+    text-align: center;
 }
 
-.jumbotron > p {
-    font-size: 22px;
+#header h1 {
+    letter-spacing: 5px;
+}
+
+#header p {
+    font-size: 20px;
     font-style: italic;
+}
+
+#github {
+    display: inline-block;
+    background: #C2BEDF;
+    margin: auto;
+    border-radius: 6px;
+    padding: 2px;
+    cursor: pointer;
+}
+
+#github img {
+    width: 25%;
+}
+
+#github span {
+    color: black;
+    margin-left: 5px;
 }
 
 
@@ -140,9 +167,6 @@
     cursor: pointer;
 }
 
-
-
-
 .badge {
     font-size: 14px;
 }
@@ -189,6 +213,10 @@ textarea {
     cursor: pointer
 }
 
+.wait-cursor {
+    cursor: not-allowed
+}
+
 #sort-option-container > div {
     display: inline-block;
 }
@@ -229,6 +257,74 @@ textarea {
     margin: 10px 50px 10px 50px;
 }
 
+.hide {
+    display: none;
+}
+
+
+.spinning-gylphicon {
+    animation: spin 1s infinite linear;
+}
+
+@keyframes spin {
+    from { transform: scale(1) rotate(0deg); }
+    to { transform: scale(1) rotate(360deg); }
+}
+
+
+#notification-bar {
+    position: fixed;
+    left: 0;
+    right: 0;
+    margin: auto;
+    z-index: 100;
+    width: 100%;
+    background: #C25B56;
+    height: 40px;
+    font-size: 20px;
+    text-align: center;
+    color: white;
+
+    animation-duration: 1s;
+    animation-delay: 0.4s;
+}
+
+#notification-bar > div {
+    position: relative;
+    top: 6px;
+}
+
+
+
+#authorNameFilterOption {
+    border-bottom: 1px solid lightgray;
+}
+
+#authorNameFilterOption p:nth-child(1) {
+    color: black;
+    font-size: 14px;
+    font-weight: bold;
+    text-decoration: underline;
+    margin-bottom: 2px;
+}
+
+#authorNameFilterOption p:nth-child(2) {
+    color: #C25B56;
+    font-size: 12px;
+    font-style: italic;
+    padding: 0;
+    margin: 0;
+}
+
+#authorNameFilterOption p:nth-child(3) {
+    color: #74828F;
+    font-size: 12px;
+    font-style: italic;
+    padding: 0;
+    margin: 0;
+}
+
+
 .with-fadeout {
     animation-duration: 10s;
     animation-name: fadeout;
@@ -250,58 +346,6 @@ textarea {
 
 
 
-
-
-
-.hide {
-    display: none;
-}
-
-
-.spinning-gylphicon {
-    animation: spin 1s infinite linear;
-}
-
-@keyframes spin {
-    from { transform: scale(1) rotate(0deg); }
-    to { transform: scale(1) rotate(360deg); }
-}
-
-
-@keyframes slider {
-    0% {
-        transform: translate(0, -40px)
-    }
-    50% {
-        transform: translate(0, 0px)
-    }
-    100% {
-        transform: translate(0, -40px);
-    }
-}
-
-
-#notification-bar {
-    position: fixed;
-    left: 0;
-    right: 0;
-    margin: auto;
-    z-index: 1;
-    width: 100%;
-    background: #C25B56;
-    height: 40px;
-    font-size: 20px;
-    text-align: center;
-    color: white;
-
-    animation-duration: 1s;
-    animation-delay: 0.4s;
-}
-
-#notification-bar > div {
-    position: relative;
-    top: 6px;
-}
 
 
 /* Experimental animations */
@@ -332,31 +376,15 @@ textarea {
     }
 }
 
-
-#authorNameFilterOption {
-    border-bottom: 1px solid lightgray;
+@keyframes slider {
+    0% {
+        transform: translate(0, -40px)
+    }
+    50% {
+        transform: translate(0, 0px)
+    }
+    100% {
+        transform: translate(0, -40px);
+    }
 }
 
-#authorNameFilterOption p:nth-child(1) {
-    color: black;
-    font-size: 14px;
-    font-weight: bold;
-    text-decoration: underline;
-    margin-bottom: 2px;
-}
-
-#authorNameFilterOption p:nth-child(2) {
-    color: #C25B56;
-    font-size: 12px;
-    font-style: italic;
-    padding: 0;
-    margin: 0;
-}
-
-#authorNameFilterOption p:nth-child(3) {
-    color: #74828F;
-    font-size: 12px;
-    font-style: italic;
-    padding: 0;
-    margin: 0;
-}

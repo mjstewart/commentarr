@@ -1,4 +1,4 @@
-import React from 'react'
+import React from 'react';
 
 class CreateVoteButton extends React.Component {
     render() {
@@ -21,5 +21,5 @@ CreateVoteButton.propTypes = {
     serverResponse: React.PropTypes.object.isRequired
 };
 
-export default CreateVoteButton
+export default CreateVoteButton;
 

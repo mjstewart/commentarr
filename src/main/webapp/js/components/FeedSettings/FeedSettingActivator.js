@@ -1,5 +1,8 @@
-import React from 'react'
+import React from 'react';
 
+/**
+ * Panel which lets user display the FeedSettingControls.
+ */
 class FeedSettingsActivator extends React.Component {
 
     createMenuTitle() {
@@ -29,6 +32,6 @@ FeedSettingsActivator.propTypes = {
     toggleFeedSettingControls: React.PropTypes.func.isRequired
 };
 
-export default FeedSettingsActivator
+export default FeedSettingsActivator;
 
 

@@ -1,7 +1,7 @@
-import React from 'react'
+import React from 'react';
 
 /**
- * Top level component sends down server response object, and we check if its for the comment create event we
+ * Top level component sends down server response object, and we check if its for the 'comment create' event we
  * need to display information for, otherwise keep hidden.
  */
 class SubmitStatus extends React.Component {
@@ -12,7 +12,7 @@ class SubmitStatus extends React.Component {
         let content;
 
         if (serverResponse.event === 'comment create') {
-            css = "alert margin-top-sm ";
+            css = "alert margin-top-sm with-fadein ";
 
             const {status} = serverResponse;
             if (status === 'waiting') {
@@ -24,7 +24,7 @@ class SubmitStatus extends React.Component {
             } else if (status === 'error') {
                 // will handle database issues, specific type of issue is available in errorEvent property.
                 css += "alert-danger";
-                content = <p><span><strong>Error</strong></span> {serverResponse.reason}</p>
+                content = <p><strong>Oops</strong> there's been a slight error.. {serverResponse.reason}, please try again</p>
             } else if (status === 'ok') {
                 css += "alert-success";
                 content = <p><span><strong>Success</strong></span> Your comment has been saved</p>
@@ -46,6 +46,6 @@ SubmitStatus.propTypes = {
     removeCommentSubmitStatus: React.PropTypes.func.isRequired
 };
 
-export default SubmitStatus
+export default SubmitStatus;
 
 

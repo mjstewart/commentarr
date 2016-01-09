@@ -1,6 +1,6 @@
 import React from 'react';
 import Immutable from 'immutable';
-import CreateCommentButton from './../CreateCommentButton';
+import CreateCommentButton from './../CommentForm/CreateCommentButton';
 import CommentForm from './../CommentForm/CommentForm';
 import FeedSettingActivator from './../FeedSettings/FeedSettingActivator';
 import FeedSettingControls from './../FeedSettings/FeedSettingControls';
@@ -253,22 +253,91 @@ class CommentFeed extends React.Component {
         });
     }
 
+    /**
+     * Creates a new serverResponse object and removes any old timers that were in action due to waiting for the
+     * server. Setting the status to 'ok' causes all lower level components interested in the event to display
+     * success feedback if they need to.
+     *
+     * @param serverResponseEvent such as 'comment update' to be placed as the event property
+     * @param commentId
+     * @returns {{event: *, status: string, commentId: *, timestamp: Date}}
+     */
+    onServerReplySuccess(serverResponseEvent, commentId) {
+        const serverResponse = {
+            event: serverResponseEvent,
+            status: 'ok',
+            commentId: commentId,
+            timestamp: new Date()
+        };
+        console.log("onUpdateComment hasOwnProperty");
+        if (this.state.serverResponse.hasOwnProperty("timerId")) {
+            // because we placed a small delay on issuing wait feedback, there will only be a timerId if the
+            // server doesn't respond fast and goes into a waiting state.
+            clearTimeout(this.state.serverResponse.timerId);
+        }
+
+        return serverResponse;
+    }
+
+    /**
+     * This is purely to provide a nicer UI.
+     * When the server is fast at responding nothing will show up in the waiting status, otherwise the waiting status
+     * flashes up for an immediate server response which makes it a little ugly.
+     *
+     * If the status 1 second ago is still the same as it is when the call back timer
+     * function is run, then we haven't heard back from the server so set the state to waiting which
+     * causes the CommentItem to display waiting feedback. The state before the callback is invoked
+     * is kept in beforeEvent/Status.
+     *
+     * The timestamp is used to handle the case where the user votes for the same comment consecutively.
+     * Without the timestamp the serverResponse state would be the same even though the server successfully
+     * responded which causes the waiting feedback to still display.
+     *
+     * @param serverResponseEvent for example, 'comment update'
+     * @param commentId the commentId being actioned at the time'
+     */
+    applyWaitingFeedbackForEvent(serverResponseEvent, commentId) {
+        const beforeEvent = this.state.serverResponse.event;
+        const beforeStatus = this.state.serverResponse.status;
+        const beforeTimestamp = this.state.serverResponse.timestamp;
+
+        setTimeout(function() {
+            // after 1 second this function will run, it checks before state with the state right now. If unchanged,
+            // set the status to waiting which causes lower level components to apply waiting feedback.
+            const {event} = this.state.serverResponse;
+            const {status} = this.state.serverResponse;
+            const {timestamp} = this.state.serverResponse;
+            if (event === beforeEvent && status === beforeStatus && timestamp === beforeTimestamp) {
+                /*
+                 * timer provided so CommentItem can stop the timer if response from server is received
+                 * the timer needs to be greater than database timeout so we can differentiate between the 2.
+                 * commentId provided so the specific CommentItem shows the status, not every comment.
+                 */
+                this.setState({
+                    serverResponse: {
+                        event: serverResponseEvent,
+                        status: 'waiting',
+                        commentId: commentId,
+                        timerId: setTimeout(() => this.onServerTimeout(serverResponseEvent), 20000),
+                        timestamp: new Date()
+                    }
+                });
+            }
+        }.bind(this), 1000);
+    }
+
 
     /**
      * Inform user on comment submit status by changing the serverResponse state which the CommentForm looks at to
      * derive submit status.
      *
-     * @param serverResponse the response from the server.
+     * @param serverResponse the json response object from the server.
      */
     onCreateComment(serverResponse) {
         console.log("onCreateComment");
         console.log(serverResponse);
         this.setState({
-            serverResponse: {
-                event: serverResponse.event,
-                status: serverResponse.status,
-                timestamp: new Date()
-            }
+            serverResponse: this.onServerReplySuccess("comment create", serverResponse.commentId)
         });
 
     }
@@ -284,14 +353,8 @@ class CommentFeed extends React.Component {
 
         // timer provided so child components can stop the timer if response from server is received
         // note for timer, it needs to be greater than database timeout so we can differentiate between the 2.
-        this.setState({
-            serverResponse: {
-                event: 'comment create',
-                status: 'waiting',
-                timerId: setTimeout(() => this.onServerTimeout('comment create'), 20000),
-                timestamp: new Date()
-            }
-        });
+
+        this.applyWaitingFeedbackForEvent("comment create", "null")
     }
 
 
@@ -355,55 +418,14 @@ class CommentFeed extends React.Component {
      */
     updateComment(comment, field) {
         console.log("updateComment");
-        console.log(comment);
-
-
-        const beforeEvent = this.state.serverResponse.event;
-        const beforeStatus = this.state.serverResponse.status;
-        const beforeTimestamp = this.state.serverResponse.timestamp;
-
-        /*
-         * This is just for ui feedback to make it nicer when the server is fast at responding nothing will show up
-         * in the waiting status, otherwise the waiting status flashes up for an immediate server response which makes
-         * it a little ugly.
-         *
-         * If the status 1 second ago is still the same as it is when the call back timer
-         * function is run, then we obviously haven't heard back from the server so set the state to waiting which
-         * causes the CommentItem to display waiting feedback. The state before the callback is invoked
-         * is kept in beforeEvent/Status above. The timestamp is used to handle the case where the user votes
-         * for the same comment consecutively. Without the timestamp the serverResponse state would be the same
-         * even though the server successfully responded which causes the waiting feedback to still display.
-         */
-        setTimeout(function() {
-            const {event} = this.state.serverResponse;
-            const {status} = this.state.serverResponse;
-            const {timestamp} = this.state.serverResponse;
-            if (event === beforeEvent && status === beforeStatus && timestamp === beforeTimestamp) {
-                /*
-                 * timer provided so CommentItem can stop the timer if response from server is received
-                 * the timer needs to be greater than database timeout so we can differentiate between the 2.
-                 * commentId provided so the specific CommentItem shows the status, not every comment.
-                 */
-                this.setState({
-                    serverResponse: {
-                        event: 'comment update',
-                        status: 'waiting',
-                        commentId: comment.id,
-                        timerId: setTimeout(() => this.onServerTimeout('comment update'), 20000),
-                        timestamp: new Date()
-                    }
-                });
-            }
-        }.bind(this), 1000);
-        console.log("state must have changed in onUpdate so no need to display waiting");
-
 
         const data = {
             updateField: field,
             comment: comment
         };
-        console.log(data);
+
         this.socket.emit('comment update', data);
+        this.applyWaitingFeedbackForEvent("comment update", comment.id);
     }
 
     /**
@@ -414,26 +436,13 @@ class CommentFeed extends React.Component {
     onUpdateComment(data) {
         console.log("Received onUpdateComment from server");
         const comment = JSON.parse(data.comment);
-        console.log(comment);
-        console.log("");
 
         // remove old comment and replace with the new updated comment
         let newComments = this.state.comments.filter(c => c.id !== comment.id);
         newComments = newComments.push(comment);
         newComments = this.filterAndSort(newComments, this.state.sortSettings.comparator, this.state.commentFilter.filterFn);
 
-
-        // clear the timer since a call to this function means server sent an updated comment
-        // setting status to ok with commentId allows the specific CommentItem to show feedback if coded to do so
-        const serverResponse = {
-            event: 'comment update',
-            status: 'ok',
-            commentId: comment.id,
-            timestamp: new Date()
-        };
-        clearTimeout(this.state.serverResponse.timerId);
-
-
+        const serverResponse = this.onServerReplySuccess("comment update", comment.id);
 
         if (this.state.commentFilter.filterName == null) {
             // the updateCache isn't created here as initial state sets it up and is recreated every time filter is cleared
@@ -465,34 +474,41 @@ class CommentFeed extends React.Component {
     deleteComment(comment) {
         console.log('deleteComment title=' + comment.title);
         this.socket.emit('comment delete', comment);
+        this.applyWaitingFeedbackForEvent("comment delete", comment.id);
     }
 
     /**
      * Server tells us to remove a comment
      *
-     * @param commentId
+     * @param json object containing event and commentId keys
      */
-    onDeleteComment(commentId) {
-        console.log('onDeleteComment id=' + commentId);
+    onDeleteComment(json) {
+        console.log("onDeleteComment");
+        const commentId = json.commentId;
+        console.log(commentId);
 
         const newCommentsAfterDelete = this.state.comments.filter(c => c.id !== commentId);
         const comments = this.filterAndSort(newCommentsAfterDelete,
             this.state.sortSettings.comparator, this.state.commentFilter.filterFn);
 
+        const serverResponse = this.onServerReplySuccess("comment delete", commentId);
+
         if (this.state.commentFilter.filterName == null) {
             // the deleteCache isn't created here as initial state sets it up and is recreated every time filter is cleared
             this.setState({
-                comments: comments
+                comments: comments,
+                serverResponse: serverResponse
             });
         } else {
             // filter is on, cache the deleted comment so it can be merged back when filter is removed.
             this.setState({
                 comments: comments,
-                deletedCommentIdForCache: this.state.deletedCommentIdForCache.add(commentId)
+                deletedCommentIdForCache: this.state.deletedCommentIdForCache.add(commentId),
+                serverResponse: serverResponse
             });
         }
 
-        const message = `+1 comment deleted with \'id ${commentId}\'`;
+        const message = `+1 comment has been deleted`;
         this.notificationHandler.showNotification(message);
     }
 

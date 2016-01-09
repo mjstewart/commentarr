@@ -2,6 +2,11 @@ import React from 'react';
 import {SimpleSelect} from 'react-selectize';
 import moment from 'moment';
 
+/**
+ * Uses react-selectize to create a searchable drop down list of authors to search for.
+ * http://furqanzafar.github.io/react-selectize/#/?category=multi
+ *
+ */
 class AuthorFilterSelector extends React.Component {
     constructor(props) {
         super(props);
@@ -97,7 +102,8 @@ class AuthorFilterSelector extends React.Component {
 
     createClearButton() {
         return <button className="btn btn-xs core-heading margin-top-sm"
-                       onClick={this.onClear.bind(this)}>Reset</button>
+                       onClick={this.onClear.bind(this)}
+                       data-toggle="tooltip" title="Remove author filter">Reset</button>
     }
 
     render() {

@@ -1,6 +1,9 @@
-import React from 'react'
+import React from 'react';
 import AuthorFilterSelector from './AuthorFilterSelector';
 
+/**
+ * Contains sorting options and various filters to manipulate the way the CommentList is displayed.
+ */
 class FeedSettingControls extends React.Component {
 
     constructor(props) {
@@ -105,7 +108,7 @@ class FeedSettingControls extends React.Component {
         const isActive = field === "voteCount";
         return (
             <div>
-                {isActive ? <label>By vote count {this.getEnabledIcon()}</label> : <label>By vote count</label>}
+                {isActive ? <label>Vote count {this.getEnabledIcon()}</label> : <label>Vote count</label>}
                 <div className="dropdown">
                     <button className="btn btn-default dropdown-toggle" type="button" id="dropdownVoteCount"
                             data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
@@ -143,7 +146,7 @@ class FeedSettingControls extends React.Component {
         const isActive = field === "message";
         return (
             <div>
-                {isActive ? <label>By longest comment {this.getEnabledIcon()}</label> : <label>By longest comment </label>}
+                {isActive ? <label>Longest comment {this.getEnabledIcon()}</label> : <label>Longest comment </label>}
                 <div className="dropdown">
                     <button className="btn btn-default dropdown-toggle" type="button" id="dropdownCommentLength"
                             data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
@@ -180,7 +183,7 @@ class FeedSettingControls extends React.Component {
         const isActive = field === "dateCreated";
         return (
             <div>
-                {isActive ? <label>By date created {this.getEnabledIcon()}</label> : <label>By date created</label>}
+                {isActive ? <label>Date created {this.getEnabledIcon()}</label> : <label>Date created</label>}
                 <div className="dropdown">
                     <button className="btn btn-default dropdown-toggle" type="button" id="dropdownDateCreated"
                             data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
@@ -217,7 +220,7 @@ class FeedSettingControls extends React.Component {
         const isActive = field === "dateLastUpdated";
         return (
             <div>
-                {isActive ? <label>By last time updated {this.getEnabledIcon()}</label> : <label>By last time updated</label>}
+                {isActive ? <label>Last updated {this.getEnabledIcon()}</label> : <label>Last updated</label>}
                 <div className="dropdown">
                     <button className="btn btn-default dropdown-toggle" type="button" id="dropdownDateLastUpdated"
                             data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
