@@ -110,7 +110,9 @@ class CommentList extends React.Component {
                             <CommentItem key={comment.id} comment={comment}
                                          serverResponse={this.props.serverResponse}
                                          updateComment={this.props.updateComment}
-                                         deleteComment={this.props.deleteComment} />)}
+                                         deleteComment={this.props.deleteComment}
+                                         onReportAction={this.props.onReportAction}
+                                         commentUnderReviewThreshold={this.props.commentUnderReviewThreshold} />)}
                     </div>}
                 </div>
 
@@ -138,7 +140,9 @@ CommentList.propTypes = {
     updateComment: React.PropTypes.func.isRequired,
     deleteComment: React.PropTypes.func.isRequired,
     getAllComments: React.PropTypes.func.isRequired,
-    databaseOffline: React.PropTypes.bool.isRequired
+    databaseOffline: React.PropTypes.bool.isRequired,
+    onReportAction: React.PropTypes.func.isRequired,
+    commentUnderReviewThreshold: React.PropTypes.number.isRequired
 };
 
 export default CommentList;

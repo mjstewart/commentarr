@@ -34,7 +34,8 @@ class CommentForm extends React.Component {
             // prevents timeout error from displaying after error is displayed
             // we first wait for db error, if no db error then wait for timeout response.
             clearTimeout(this.props.serverResponse.timerId);
-        } else if (nextProps.serverResponse.status === 'ok') {
+        } else if (nextProps.serverResponse.status === 'ok' && nextProps.serverResponse.event == "comment create") {
+            // only interested when its 'comment create' otherwise form will be cleared when any ok status arrives.
             this.clearForm();
         }
     }
@@ -144,13 +145,13 @@ class CommentForm extends React.Component {
      * If the serverResponse event is empty or waiting, the form cant be submitted as the submit button is disabled so
      * no events should fire when clicking into a field.
      *
-     * Any other event we will call removeCommentSubmitStatus as that will clear the forms submit status.
+     * Any other event we will call clearServerResponse as that will clear the forms submit status.
      *
      * @returns {*}
      */
     getValidatableFieldOnClickHandler() {
         return this.props.serverResponse.event === '' || this.props.serverResponse.event === "waiting"
-            ? null : this.props.removeCommentSubmitStatus;
+            ? null : this.props.clearServerResponse;
     }
 
     render() {
@@ -182,7 +183,7 @@ class CommentForm extends React.Component {
                         disabled={this.props.serverResponse.status === "waiting"}>Submit</button>
 
                 <SubmitStatus serverResponse={this.props.serverResponse}
-                              removeCommentSubmitStatus={this.props.removeCommentSubmitStatus} />
+                              clearServerResponse={this.props.clearServerResponse} />
             </form>
         )
     }
@@ -190,7 +191,7 @@ class CommentForm extends React.Component {
 
 CommentForm.propTypes = {
     createComment: React.PropTypes.func.isRequired,
-    removeCommentSubmitStatus: React.PropTypes.func.isRequired,
+    clearServerResponse: React.PropTypes.func.isRequired,
     serverResponse: React.PropTypes.object,
 };
 

@@ -6,13 +6,6 @@ import AuthorFilterSelector from './AuthorFilterSelector';
  */
 class FeedSettingControls extends React.Component {
 
-    constructor(props) {
-        console.log("FeedSettingControls, constructor");
-        console.log(props);
-
-        super(props);
-    }
-
     orderByCommentLength(longest) {
         return function() {
             if (longest) {
@@ -248,25 +241,108 @@ class FeedSettingControls extends React.Component {
     }
 
 
+    /**
+     * Creates an AuthorFilterSelector component.
+     * If no other filters are enabled (only 1 filter is allowed to be on at any 1 time), the control returned
+     * is accessible for use by the client, otherwise a greyed out disabled version is returned.
+     *
+     * @returns {XML}
+     */
     getFilterByAuthorControl() {
-        // AuthorFilterSelector sets filterName when its value changes.
         // filterName enables us to identify the author filter is enabled, useful if more filters get added later.
         const isActive = this.props.commentFilter.filterName === "authorName";
+        const disabled = this.props.commentFilter.filterName != null && !isActive;
+
+        let content;
+        if (disabled) {
+            content = (
+                <div>
+                    <label className="grey-out">By author
+                        <span className="glyphicon glyphicon-question-sign margin-left-xs"
+                              data-toggle="tooltip" title="Clear any existing filters to access"> </span>
+                    </label>
+                    <AuthorFilterSelector comments={this.props.comments}
+                                          setCommentFilter={this.props.setCommentFilter}
+                                          clearCommentFilter={this.props.clearCommentFilter}
+                                          showClearButton={isActive}
+                                          disabled={true}/>
+                </div>
+            )
+        } else {
+            content = (
+                <div>
+                    {isActive ? <label>By author {this.getEnabledIcon()}</label> : <label>By author</label>}
+                    <AuthorFilterSelector comments={this.props.comments}
+                                          setCommentFilter={this.props.setCommentFilter}
+                                          clearCommentFilter={this.props.clearCommentFilter}
+                                          showClearButton={isActive}/>
+                </div>
+            )
+        }
+
 
         return (
             <div>
-                {isActive ? <label>By author {this.getEnabledIcon()}</label> : <label>By author</label>}
-                <AuthorFilterSelector comments={this.props.comments}
-                                      setCommentFilter={this.props.setCommentFilter}
-                                      clearCommentFilter={this.props.clearCommentFilter}
-                                      showClearButton={isActive}/>
+                {content}
+            </div>
+        );
+    }
+
+
+    filterCommentsUnderModeration(event) {
+        if (event.target.checked) {
+            this.props.setCommentFilter({
+                filterName: "commentsUnderModeration",
+                filterFn: comment => comment.reports >= this.props.commentUnderReviewThreshold
+
+            });
+        } else {
+            this.props.clearCommentFilter();
+        }
+    }
+
+    /**
+     * Returns the comments under moderation control.
+     * If no other filters are enabled (only 1 filter is allowed to be on at any 1 time), the control returned
+     * is accessible for use by the client, otherwise a greyed out disabled version is returned.
+     *
+     * @returns {XML}
+     */
+    getFilterCommentsUnderModerationControl() {
+        // filterName enables us to identify if the filter is enabled, useful if more filters get added later.
+        const isActive = this.props.commentFilter.filterName === "commentsUnderModeration";
+        const disabled = this.props.commentFilter.filterName != null && !isActive;
+
+        let content;
+        if (disabled) {
+            content = (
+                <div>
+                    <label className="grey-out">Comments under moderation
+                        <span className="glyphicon glyphicon-question-sign margin-left-xs"
+                              data-toggle="tooltip" title="Clear any existing filters to access"> </span>
+                    </label>
+                    <p className="grey-out"><input type="checkbox" disabled="true"
+                              onChange={this.filterCommentsUnderModeration.bind(this)}/> Display all</p>
+                </div>
+            )
+        } else {
+           content = (
+               <div>
+                   {isActive ? <label>Comments under moderation {this.getEnabledIcon()}</label> : <label>Comments under moderation</label>}
+                   <p><input type="checkbox" onChange={this.filterCommentsUnderModeration.bind(this)}/> Display all</p>
+               </div>
+           )
+        }
+
+        return (
+            <div>
+                {content}
             </div>
         );
     }
 
 
     render() {
-        console.log("FeedSettingControls render");
         let {field} = this.props.sortSettings;
         let {order} = this.props.sortSettings;
         return (
@@ -300,7 +376,14 @@ class FeedSettingControls extends React.Component {
                         <div className="col-lg-4 col-md-6 col-sm-6">
                             {this.getFilterByAuthorControl.bind(this)()}
                         </div>
+                        <div className="col-lg-4 col-md-6 col-sm-6">
+                            { /* spacer for styling purposes */ }
+                        </div>
+                        <div className="col-lg-4 col-md-6 col-sm-6">
+                            {this.getFilterCommentsUnderModerationControl.bind(this)()}
+                        </div>
                     </div>
+
 
                 </div>
             </div>
@@ -314,7 +397,8 @@ FeedSettingControls.propTypes = {
     onSortChange: React.PropTypes.func.isRequired,
     setCommentFilter: React.PropTypes.func.isRequired,
     clearCommentFilter: React.PropTypes.func.isRequired,
-    comments: React.PropTypes.object.isRequired
+    comments: React.PropTypes.object.isRequired,
+    commentUnderReviewThreshold: React.PropTypes.number.isRequired
 };
 
 

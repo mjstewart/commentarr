@@ -11,6 +11,8 @@ import javax.websocket.server.ServerEndpoint;
 import java.io.StringReader;
 
 /**
+ * Main entry point for where client requests get received and handled.
+ *
  * Created by Matt Stewart on 02/January/2016.
  */
 @ApplicationScoped

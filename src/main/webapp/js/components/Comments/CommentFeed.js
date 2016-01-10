@@ -17,6 +17,7 @@ class CommentFeed extends React.Component {
     constructor(props) {
         super(props);
         this.notificationHandler = new NotificationBar();
+        this.commentUnderReviewThreshold = 3;
 
         // keep entire feed state at top level, clojure script does this style, then state is passed down to everyone
         this.state = {
@@ -223,11 +224,10 @@ class CommentFeed extends React.Component {
     }
 
     /**
-     * Removes the submit status box in the vote form which displays after comment has been submitted for user feedback.
      * By clearing the serverResponse state, any components feedback dependent on this state will be cleared.
      */
-    removeCommentSubmitStatus() {
-        console.log("removeCommentSubmitStatus");
+    clearServerResponse() {
+        console.log("clearServerResponse");
 
         this.setState({
             serverResponse: {
@@ -235,6 +235,32 @@ class CommentFeed extends React.Component {
                 status: ""
             }
         });
+    }
+
+    /**
+     * A CommentEditAction component calls this function for the purpose of being able to control when the
+     * report success removes from the screen.
+     *
+     * status `waiting` is set to disable every CommentItems editing actions whilst the status message is being
+     * displayed to ensure a consistent UI.
+     *
+     * After 5 seconds the serverResponse is cleared which removes any UI feedback on the screen to its default state.
+     *
+     * @param commentId the commentId having the report count updated so the status message can displayed
+     * for just that CommentItem.
+     */
+    onReportAction(commentId) {
+        console.log("onReportAction called");
+        this.setState({
+            serverResponse: {
+                event: "report notification",
+                status: "waiting",
+                commentId: commentId
+            }
+        });
+
+        // every component remove any feedback, this will cause CommentItem report success status to go away
+        setTimeout(() => this.clearServerResponse(), 5000)
     }
 
     /**
@@ -258,24 +284,30 @@ class CommentFeed extends React.Component {
      * server. Setting the status to 'ok' causes all lower level components interested in the event to display
      * success feedback if they need to.
      *
+     * A special case is when event is 'comment update' as an extra property of 'updateField' is included in order
+     * to differentiate between what was specifically updated to allow tailored UI feedback.
+     *
      * @param serverResponseEvent such as 'comment update' to be placed as the event property
      * @param commentId
      * @returns {{event: *, status: string, commentId: *, timestamp: Date}}
      */
-    onServerReplySuccess(serverResponseEvent, commentId) {
+    onServerReplySuccess(serverResponseEvent, commentId, updateField = null) {
         const serverResponse = {
             event: serverResponseEvent,
             status: 'ok',
             commentId: commentId,
             timestamp: new Date()
         };
-        console.log("onUpdateComment hasOwnProperty");
+
+        if (updateField !== null) {
+            // include it in the object if its provided as a parameter.
+            serverResponse.updateField = updateField;
+        }
         if (this.state.serverResponse.hasOwnProperty("timerId")) {
             // because we placed a small delay on issuing wait feedback, there will only be a timerId if the
             // server doesn't respond fast and goes into a waiting state.
             clearTimeout(this.state.serverResponse.timerId);
         }
-
         return serverResponse;
     }
 
@@ -435,14 +467,16 @@ class CommentFeed extends React.Component {
      */
     onUpdateComment(data) {
         console.log("Received onUpdateComment from server");
+        console.log(data);
+        const updateField = data.updateField;
         const comment = JSON.parse(data.comment);
 
-        // remove old comment and replace with the new updated comment
-        let newComments = this.state.comments.filter(c => c.id !== comment.id);
-        newComments = newComments.push(comment);
+        // replace old comment with the new one in the same index so it doesn't affect sorting order.
+        let newComments = this.state.comments
+            .update(this.state.comments.findIndex(c => c.id == comment.id), existingComment => comment);
         newComments = this.filterAndSort(newComments, this.state.sortSettings.comparator, this.state.commentFilter.filterFn);
 
-        const serverResponse = this.onServerReplySuccess("comment update", comment.id);
+        const serverResponse = this.onServerReplySuccess("comment update", comment.id, updateField);
 
         if (this.state.commentFilter.filterName == null) {
             // the updateCache isn't created here as initial state sets it up and is recreated every time filter is cleared
@@ -459,8 +493,13 @@ class CommentFeed extends React.Component {
             });
         }
 
-        const message = `+1 updated comment with \'title ${comment.title}\'`;
-        this.notificationHandler.showNotification(message);
+        if (updateField === 'reports') {
+            const message = `+1 comment reported with \'title ${comment.title}\'`;
+            this.notificationHandler.showNotification(message);
+        } else {
+            const message = `+1 updated comment with \'title ${comment.title}\'`;
+            this.notificationHandler.showNotification(message);
+        }
     }
 
     /**
@@ -650,10 +689,15 @@ class CommentFeed extends React.Component {
                 commentFilter: commentFilter
             });
         } else {
-            // acts as the new comments that filter will be run on
+            /*
+             * already a filter on so rebuild all the comments again including any in the caches so the filter
+             * can be reapplied over the most up to date comments.
+             *
+             * Caches are only completely recreated when clearCommentFilter is applied.
+             */
             let rebuiltComments = this.rebuildCommentsFromCache.bind(this)();
 
-            // before filtering, create a new cache
+            // before filtering again, create a new cache which represents ALL the updated comments at this point in time.
             let newCommentCache = Immutable.List(rebuiltComments);
 
             this.setState({
@@ -742,7 +786,7 @@ class CommentFeed extends React.Component {
                     {this.state.displayCreateCommentForm ?
                         <CommentForm createComment={this.createComment.bind(this)}
                                      serverResponse={this.state.serverResponse}
-                                     removeCommentSubmitStatus={this.removeCommentSubmitStatus.bind(this)} /> : null}
+                                     clearServerResponse={this.clearServerResponse.bind(this)} /> : null}
 
                     <FeedSettingActivator displayFeedSettingControls={this.state.displayFeedSettingControls}
                                           toggleFeedSettingControls={this.toggleFeedSettingControls.bind(this)} />
@@ -753,7 +797,8 @@ class CommentFeed extends React.Component {
                                              onSortChange={this.onSortChange.bind(this)}
                                              setCommentFilter={this.setCommentFilter.bind(this)}
                                              clearCommentFilter={this.clearCommentFilter.bind(this)}
-                                             comments={this.state.comments}/> : null
+                                             comments={this.state.comments}
+                                             commentUnderReviewThreshold={this.commentUnderReviewThreshold}/> : null
                     }
 
                     <CommentList comments={this.state.comments}
@@ -761,7 +806,9 @@ class CommentFeed extends React.Component {
                                  updateComment={this.updateComment.bind(this)}
                                  deleteComment={this.deleteComment.bind(this)}
                                  getAllComments={this.getAllComments.bind(this)}
-                                 databaseOffline={this.state.databaseOffline}/>
+                                 databaseOffline={this.state.databaseOffline}
+                                 onReportAction={this.onReportAction.bind(this)}
+                                 commentUnderReviewThreshold={this.commentUnderReviewThreshold}/>
                 </div>)
         } else {
                 return (<div className="alert alert-dismissible margin-top-sm alert-warning" role="alert">

@@ -17,24 +17,25 @@ class SubmitStatus extends React.Component {
             const {status} = serverResponse;
             if (status === 'waiting') {
                 css += "core-heading";
-                content = <p><span className="glyphicon glyphicon-refresh spinning-gylphicon"> </span> Submitting, please wait...</p>
+                content = <p><span className="glyphicon glyphicon-refresh spinning-gylphicon margin-right-xs"></span>Submitting, please wait...</p>
             } else if (status === 'timeout') {
                 css += "alert-danger";
-                content = <p><span><strong>Timeout error</strong></span> Unable to reach the server, please try again</p>
+                content = <p><span className="glyphicon glyphicon-remove margin-right-xs"></span>Unable to reach the server, please try again</p>
             } else if (status === 'error') {
                 // will handle database issues, specific type of issue is available in errorEvent property.
                 css += "alert-danger";
-                content = <p><strong>Oops</strong> there's been a slight error.. {serverResponse.reason}, please try again</p>
+                content = <p><span className="glyphicon glyphicon-remove margin-right-xs"></span>
+                    there's been a slight error.. {serverResponse.reason}, please try again</p>
             } else if (status === 'ok') {
                 css += "alert-success";
-                content = <p><span><strong>Success</strong></span> Your comment has been saved</p>
+                content = <p><span className="glyphicon glyphicon-ok margin-right-xs"></span>Your comment has been saved</p>
             }
         }
 
         return (
             <div className={css} role="alert">
                 <button type="button" className="close" aria-label="Close">
-                    <span onClick={this.props.removeCommentSubmitStatus} aria-hidden="true">&times;</span></button>
+                    <span onClick={this.props.clearServerResponse} aria-hidden="true">&times;</span></button>
                 {content}
             </div>
         )
@@ -43,9 +44,8 @@ class SubmitStatus extends React.Component {
 
 SubmitStatus.propTypes = {
     serverResponse: React.PropTypes.object.isRequired,
-    removeCommentSubmitStatus: React.PropTypes.func.isRequired
+    clearServerResponse: React.PropTypes.func.isRequired
 };
 
 export default SubmitStatus;
-
 

@@ -128,6 +128,7 @@ public class CommentEventHandler {
             if (repository.update(comment)) {
                 JsonObject commentUpdatedReply = Json.createObjectBuilder()
                         .add("event", "comment update")
+                        .add("updateField", data.getString("updateField"))
                         .add("comment", toJSONString(comment))
                         .build();
                 sessionHandler.sendToCommentSubscribers(commentUpdatedReply.toString());
@@ -138,6 +139,7 @@ public class CommentEventHandler {
         } catch (IOException e) {
             e.printStackTrace();
         } catch (MongoException e) {
+            // comment will always be initialized otherwise IOException will be thrown if objectMapper fails.
             sendDBOfflineError(session, "comment update", comment.getId());
         }
     }

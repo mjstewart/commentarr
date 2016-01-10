@@ -8,7 +8,7 @@ class CreateVoteButton extends React.Component {
             <button type="button"
                     className={this.props.displayCreateCommentForm ? "btn btn-warning btn-block" : "btn btn-primary btn-block core-heading"}
                     onClick={this.props.toggleCommentForm}
-                    disabled={serverResponse.event === "comment create" && serverResponse.status === "waiting"}>
+                    disabled={serverResponse.status === "waiting"}>
                 {this.props.displayCreateCommentForm ? "Close" : "Create new comment"}
             </button>
         )

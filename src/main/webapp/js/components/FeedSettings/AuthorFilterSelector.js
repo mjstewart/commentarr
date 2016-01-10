@@ -52,6 +52,7 @@ class AuthorFilterSelector extends React.Component {
                 ref = "select"
                 placeholder ="Type in an author name"
                 options = {options}
+                disabled={this.props.disabled}
 
                 // option object {label, value, totalComments, timeAgoSinceLastCreatedComment}
                 onValueChange = {function(optionObject, callback) {
@@ -87,7 +88,7 @@ class AuthorFilterSelector extends React.Component {
 
                 renderValue = {function(item) {
                         return (<div className="simple-option"><span>{item.label}</span> </div>)
-                    }}
+                }}
             />
         </div>)
     }
@@ -103,7 +104,7 @@ class AuthorFilterSelector extends React.Component {
     createClearButton() {
         return <button className="btn btn-xs core-heading margin-top-sm"
                        onClick={this.onClear.bind(this)}
-                       data-toggle="tooltip" title="Remove author filter">Reset</button>
+                       data-toggle="tooltip" title="Remove author filter">Clear</button>
     }
 
     render() {
@@ -120,7 +121,12 @@ AuthorFilterSelector.propTypes = {
     comments: React.PropTypes.object.isRequired,
     setCommentFilter: React.PropTypes.func.isRequired,
     clearCommentFilter: React.PropTypes.func.isRequired,
-    showClearButton: React.PropTypes.bool.isRequired
+    showClearButton: React.PropTypes.bool.isRequired,
+    disabled: React.PropTypes.bool
+};
+
+AuthorFilterSelector.defaultProps = {
+    disabled: false
 };
 
 export default AuthorFilterSelector;

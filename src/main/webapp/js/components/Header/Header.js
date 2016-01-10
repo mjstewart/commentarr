@@ -14,7 +14,7 @@ class Header extends React.Component {
     componentDidMount() {
         $.ajax({
             url: 'https://api.github.com/repos/mjstewart/TestingApp01',
-            dataType: `json`,
+            dataType: 'json',
             cache: false,
             success: data => {
                 this.setState({
@@ -39,7 +39,7 @@ class Header extends React.Component {
                 <h1>CommentARR</h1>
                 <p>leave comments n stuff</p>
                 <div id="github" onClick={this.openGitHubRepo}>
-                    <img src="/assets/GitHub-Mark-32px.png" alt="github-logo"/>
+                    <img src="http://localhost:8080/commentarr/assets/GitHub-Mark-32px.png" alt="github-logo"/>
                     <span>Star {this.state.githubStargazerCount}</span>
                 </div>
             </div>
