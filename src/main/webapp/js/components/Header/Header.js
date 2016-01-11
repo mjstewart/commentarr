@@ -34,12 +34,14 @@ class Header extends React.Component {
     }
 
     render() {
+        console.log(window.location);
+        const src = `http://${window.location.hostname}:8080/commentarr/assets/GitHub-Mark-32px.png`;
         return (
             <div>
                 <h1>CommentARR</h1>
                 <p>leave comments n stuff</p>
                 <div id="github" onClick={this.openGitHubRepo}>
-                    <img src="http://localhost:8080/commentarr/assets/GitHub-Mark-32px.png" alt="github-logo"/>
+                    <img src={src} alt="github-logo"/>
                     <span>Star {this.state.githubStargazerCount}</span>
                 </div>
             </div>

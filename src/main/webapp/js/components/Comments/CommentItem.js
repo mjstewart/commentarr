@@ -1,7 +1,6 @@
 import React from 'react';
 import CommentVotingActions from './CommentVotingActions';
 import CommentEditActions from './CommentEditActions';
-import FadingStatusMessage from '../StatusAlerts/FadingStatusMessage';
 import moment from 'moment';
 
 class CommentItem extends React.Component {
