@@ -120,9 +120,7 @@ class CommentList extends React.Component {
         }
     }
 
-
     render() {
-        console.log("CommentList render");
         return  (
             <div className="panel panel-primary core-border">
                 <div className="panel-heading core-heading">

@@ -1,9 +1,10 @@
 import $ from 'jquery';
 
+/**
+ * Notification bar that slides up and down on any new comment activity.
+ */
 class NotificationBar {
-
     constructor() {
-        console.log("in notification bar constructor ###################################################################");
         this.notifications = [];
         this.notifyDiv = $("#notification-bar");
         this.notificationMessage = $("#notification-message");
@@ -13,7 +14,6 @@ class NotificationBar {
     }
 
     showNotification(message) {
-        console.log(this.displaying);
         if (this.displaying) {
             this.notificationMessage.text(message);
             this.onAlreadyDisplaying();
@@ -45,10 +45,8 @@ class NotificationBar {
      * many incoming notifications. When notifications end, the notification bar will go away.
      */
     resetTimer() {
-        console.log("NotificationBar clearing and resetting timer");
         clearTimeout(this.timerId);
         this.timerId = setTimeout(() => {
-            console.log("NotificationBar main timer expired, should be lifting back up and hiding?");
             // remove all classes and slide bar back up
             this.addCssClass("animated slideOutUp");
             this.displaying = false;

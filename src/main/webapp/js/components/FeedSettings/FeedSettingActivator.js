@@ -1,7 +1,7 @@
 import React from 'react';
 
 /**
- * Panel which lets user display the FeedSettingControls.
+ * Panel which lets user display the FeedSettingControls by toggling show/hide.
  */
 class FeedSettingsActivator extends React.Component {
 

@@ -34,7 +34,6 @@ class Header extends React.Component {
     }
 
     render() {
-        console.log(window.location);
         const src = `http://${window.location.hostname}:8080/commentarr/assets/GitHub-Mark-32px.png`;
         return (
             <div>

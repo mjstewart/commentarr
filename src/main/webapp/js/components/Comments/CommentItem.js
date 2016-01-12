@@ -5,13 +5,21 @@ import moment from 'moment';
 import $ from 'jquery';
 import CommentUtil from '../utils';
 
+/**
+ * Contains a single comment
+ */
 class CommentItem extends React.Component {
 
+    /**
+     * Actions that need to occur prior to rendering.
+     * This method is not called for the initial render.
+     *
+     * @param nextProps
+     */
     componentWillReceiveProps(nextProps) {
         if (nextProps.serverResponse.status === "ok" && this.matchesOurCommentId(nextProps.serverResponse.commentId)
             && nextProps.serverResponse.updateField === "reports") {
             // comment report has been saved, trigger status message, this controls hiding the status after timer.
-            console.log("CALLING ON REPORT ACTION");
             this.props.onReportAction(this.props.comment.id);
         } else if (this.props.serverResponse.status === "waiting"
             && this.isEventForUs(nextProps.serverResponse.commentId)) {
@@ -100,8 +108,6 @@ class CommentItem extends React.Component {
     render() {
         const dateStats = this.getDateStats();
         const {comment} = this.props;
-        console.log("SCREEN SIZE???????????????");
-        console.log($(window).width());
 
         return (
             <div className="panel panel-default">

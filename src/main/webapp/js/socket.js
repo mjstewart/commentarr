@@ -1,7 +1,7 @@
 import {EventEmitter} from 'events';
 
 /**
- * Exposes a simpler interface for client
+ * Exposes a simpler interface for client to use web sockets.
  */
 class Socket {
     constructor(url) {
@@ -34,41 +34,31 @@ class Socket {
      *
      * @param event
      * @param data
-     * @param meta any additional information related to the type of event being processed such as field being updated.
      */
     emit(event, data = null) {
         let message = (data === null) ? JSON.stringify({event}) : JSON.stringify({event, data});
-        console.log("socket.js emit to server");
-        console.log(message);
         this.ws.send(message);
     }
 
-    // emit basically delegates to whatever listener registered in CommentFeed
     onOpen() {
-        console.log("client onOpen");
         this.ee.emit('connect');
     }
 
     onClose() {
-        console.log("client onClose");
-        // alert("client onclose");
         this.ee.emit('disconnect');
     }
 
     onError() {
-        console.log("client onError");
         this.ee.emit('error');
     }
 
     /**
      * The server sends us back a message, which we receive in and handle here.
      *
-     * @param event
+     * @param event the payload sent from the server.
      */
     onMessage(event) {
         try {
-            console.log("socket.js onMessage -> received message from server - emitting to event handler");
-            console.log(event);
             const data = JSON.parse(event.data);
 
             // data.event is used to lookup which registered listener to call

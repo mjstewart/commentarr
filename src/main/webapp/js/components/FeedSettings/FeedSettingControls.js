@@ -280,7 +280,6 @@ class FeedSettingControls extends React.Component {
             )
         }
 
-
         return (
             <div>
                 {content}

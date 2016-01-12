@@ -1,9 +1,11 @@
 import React from 'react';
 
+/**
+ * On click reveals the create comment form.
+ */
 class CreateVoteButton extends React.Component {
     render() {
         const {serverResponse} = this.props;
-       // console.log("CreateCommentButton render");
         return (
             <button type="button"
                     className={this.props.displayCreateCommentForm ? "btn btn-warning btn-block" : "btn btn-primary btn-block core-heading"}

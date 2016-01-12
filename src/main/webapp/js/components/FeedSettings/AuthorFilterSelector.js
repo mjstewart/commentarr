@@ -6,13 +6,8 @@ import CommentUtil from '../utils';
 /**
  * Uses react-selectize to create a searchable drop down list of authors to search for.
  * http://furqanzafar.github.io/react-selectize/#/?category=multi
- *
  */
 class AuthorFilterSelector extends React.Component {
-    constructor(props) {
-        super(props);
-
-    }
 
     /**
      * Given an Immutable.List of comments for a given author, return the time ago since last recent comment created.
@@ -57,9 +52,6 @@ class AuthorFilterSelector extends React.Component {
 
                 // option object {label, value, totalComments, timeAgoSinceLastCreatedComment}
                 onValueChange = {function(optionObject, callback) {
-                        console.log("onValueChange");
-                        console.log(optionObject);
-
                         {this.props.setCommentFilter({
                             filterName: "authorName",
                             filterFn: function(comment) {
@@ -68,7 +60,6 @@ class AuthorFilterSelector extends React.Component {
                         })}
                         // must always invoke - https://github.com/furqanZafar/react-selectize
                         callback();
-                        console.log("endOnValueChange");
                     }.bind(this)}
 
 

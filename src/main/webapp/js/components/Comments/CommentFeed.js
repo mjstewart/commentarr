@@ -19,7 +19,7 @@ class CommentFeed extends React.Component {
         this.notificationHandler = new NotificationBar();
         this.commentUnderReviewThreshold = 3;
 
-        // keep entire feed state at top level, clojure script does this style, then state is passed down to everyone
+        // keep entire feed state at top level, then state is passed down to everyone via props.
         this.state = {
             comments: Immutable.List(),
             displayCreateCommentForm: false,
@@ -84,11 +84,11 @@ class CommentFeed extends React.Component {
         }
     }
 
+    /**
+     * Invoked once, only on the client (not on the server), immediately after the initial rendering
+     */
     componentDidMount() {
         this.notificationHandler.showNotification("Welcome :), this is where you'll see any new activity");
-
-        console.log("CommentFeed componentDidMount, trying to connect");
-        // called once after render, then onConnect gets called, state is updated then another render
 
         // this.socket makes socket available to this instance for all functions
         let socket = this.socket = new Socket(`ws://${window.location.hostname}:8080/commentarr/comments`);
@@ -116,7 +116,6 @@ class CommentFeed extends React.Component {
      * Called when web socket connects to server.
      */
     onConnect() {
-        console.log("client onConnect() -> subscribing to comments");
         this.setState({
             connected: true,
             serverResponse: {
@@ -131,7 +130,6 @@ class CommentFeed extends React.Component {
      * Called when web socket disconnects from server.
      */
     onDisconnect() {
-        console.log("client onDisconnect()");
         this.setState({
             connected: false,
             serverResponse: {
@@ -162,12 +160,8 @@ class CommentFeed extends React.Component {
      * @param json
      */
     onGetAllComments(json) {
-        console.log("onGetallComments");
-        console.log(json);
         const commentArray = JSON.parse(json.comments);
         const immutableCommentList = Immutable.List(commentArray);
-
-        console.log(immutableCommentList);
 
         this.setState({
             serverResponse: {
@@ -181,17 +175,14 @@ class CommentFeed extends React.Component {
     }
 
     /**
-     * All the comments on the server after subscribing to comment feed
+     * All the comments on the server after subscribing to comment feed.
      * Every new comment after, will get updated by onAddComment which is a single comment.
      *
      * @param json object containing 2 keys, event and comments containing an array of comments
      */
     onSubscribeComments(json) {
-        console.log("client onSubscribeComments -> received in bulk comments");
         const commentArray = JSON.parse(json.comments);
         const immutableCommentList = Immutable.List(JSON.parse(json.comments));
-        console.log(commentArray);
-
 
         this.setState({
             serverResponse: {
@@ -227,8 +218,6 @@ class CommentFeed extends React.Component {
      * By clearing the serverResponse state, any components feedback dependent on this state will be cleared.
      */
     clearServerResponse() {
-        console.log("clearServerResponse");
-
         this.setState({
             serverResponse: {
                 event: "",
@@ -250,7 +239,6 @@ class CommentFeed extends React.Component {
      * for just that CommentItem.
      */
     onReportAction(commentId) {
-        console.log("onReportAction called");
         this.setState({
             serverResponse: {
                 event: "report notification",
@@ -366,8 +354,6 @@ class CommentFeed extends React.Component {
      * @param serverResponse the json response object from the server.
      */
     onCreateComment(serverResponse) {
-        console.log("onCreateComment");
-        console.log(serverResponse);
         this.setState({
             serverResponse: this.onServerReplySuccess("comment create", serverResponse.commentId)
         });
@@ -380,12 +366,7 @@ class CommentFeed extends React.Component {
      * @param comment the new comment to save
      */
     createComment(comment) {
-        console.log("in createComment");
         this.socket.emit('comment create', comment);
-
-        // timer provided so child components can stop the timer if response from server is received
-        // note for timer, it needs to be greater than database timeout so we can differentiate between the 2.
-
         this.applyWaitingFeedbackForEvent("comment create", "null")
     }
 
@@ -397,8 +378,6 @@ class CommentFeed extends React.Component {
      * @param json json string containing event and comment keys.
      */
     onAddComment(json) {
-        console.log("Received comment from server");
-        console.log(json);
         const comment = JSON.parse(json.comment);
 
         if (this.state.commentFilter.filterName == null) {
@@ -449,13 +428,10 @@ class CommentFeed extends React.Component {
      * is to eliminate having many update functions purely used to identity which field is being updated.
      */
     updateComment(comment, field) {
-        console.log("updateComment");
-
         const data = {
             updateField: field,
             comment: comment
         };
-
         this.socket.emit('comment update', data);
         this.applyWaitingFeedbackForEvent("comment update", comment.id);
     }
@@ -466,8 +442,6 @@ class CommentFeed extends React.Component {
      * @param data json object containing event and comment keys
      */
     onUpdateComment(data) {
-        console.log("Received onUpdateComment from server");
-        console.log(data);
         const updateField = data.updateField;
         const comment = JSON.parse(data.comment);
 
@@ -511,7 +485,6 @@ class CommentFeed extends React.Component {
      * @param comment the comment to delete
      */
     deleteComment(comment) {
-        console.log('deleteComment title=' + comment.title);
         this.socket.emit('comment delete', comment);
         this.applyWaitingFeedbackForEvent("comment delete", comment.id);
     }
@@ -522,9 +495,7 @@ class CommentFeed extends React.Component {
      * @param json object containing event and commentId keys
      */
     onDeleteComment(json) {
-        console.log("onDeleteComment");
         const commentId = json.commentId;
-        console.log(commentId);
 
         const newCommentsAfterDelete = this.state.comments.filter(c => c.id !== commentId);
         const comments = this.filterAndSort(newCommentsAfterDelete,
@@ -569,9 +540,6 @@ class CommentFeed extends React.Component {
      * @param error the error object sent from server
      */
     onError(error) {
-        console.log("onError in client");
-        console.log(error);
-
         if (typeof error !== "undefined") {
             if (error.performingAction === "comment update" || error.performingAction === "comment delete") {
                 // server will include a commentId field for these events.
@@ -618,13 +586,10 @@ class CommentFeed extends React.Component {
      * @param newSortSettings the new sorting criteria to apply
      */
     onSortChange(newSortSettings) {
-        console.log("onSortChange");
-        console.log(newSortSettings);
-        console.log("");
+        const comments = this.filterAndSort(this.state.comments,
+            newSortSettings.comparator,
+            this.state.commentFilter.filterFn);
 
-        const comments = this.filterAndSort(this.state.comments, newSortSettings.comparator, this.state.commentFilter.filterFn);
-        console.log("back in onSortChange after filterAndSort");
-        console.log(comments);
         this.setState({
             comments: comments,
             sortSettings: newSortSettings
@@ -640,8 +605,6 @@ class CommentFeed extends React.Component {
      * @returns a sorted Immutable.List
      */
     sort(comments, comparatorFn) {
-        console.log("sort");
-        console.log(comments);
         return comments.sort(comparatorFn);
     }
 
@@ -654,7 +617,6 @@ class CommentFeed extends React.Component {
      * @returns a filtered Immutable.List
      */
     filterComments(comments, filterFn) {
-        console.log("filterComments");
         return (filterFn === null) ? comments : comments.filter(filterFn);
     }
 
@@ -668,7 +630,6 @@ class CommentFeed extends React.Component {
      * @returns final Immutable.List comments array
      */
     filterAndSort(comments, comparatorFn, filterFn) {
-        console.log("filterAndSort");
         return this.sort(this.filterComments(comments, filterFn), comparatorFn);
     }
 
@@ -709,7 +670,6 @@ class CommentFeed extends React.Component {
     }
 
     clearCommentFilter() {
-        console.log("clearCommentFilter");
         // ensure no commentFilter.filterFn is applied as the goal is to get ALL the latest comments back
         let rebuiltComments = this.filterAndSort(
             this.rebuildCommentsFromCache.bind(this)(),
@@ -743,7 +703,6 @@ class CommentFeed extends React.Component {
      * @returns the rebuilt comments Immutable.List
      */
     rebuildCommentsFromCache() {
-        console.log("rebuildCommentsFromCache");
         let rebuiltComments = Immutable.List();
         /*
          * go through the cached comments (all comments prior to filter being applied),
@@ -760,10 +719,6 @@ class CommentFeed extends React.Component {
                 }
             }
         });
-
-        console.log("rebuild");
-        console.log(rebuiltComments);
-
         // lastly, add any new comments
         this.state.newCommentsForCache.forEach(comment => {
             rebuiltComments = rebuiltComments.push(comment);
@@ -772,8 +727,12 @@ class CommentFeed extends React.Component {
         return rebuiltComments;
     }
 
-
-
+    /**
+     * Performs the logic required to construct the correct rendered elements based on current state.
+     * This simplifies the render functions.
+     *
+     * @returns the content to render.
+     */
     getRenderedContent() {
         if (this.state.connected) {
             return (
@@ -819,7 +778,6 @@ class CommentFeed extends React.Component {
     }
 
     render() {
-        console.log("CommentFeed render");
         return this.getRenderedContent()
     }
 

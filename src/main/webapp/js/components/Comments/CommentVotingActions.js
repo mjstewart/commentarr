@@ -11,7 +11,6 @@ class CommentVotingActions extends React.Component {
      */
     onVoteCountChange(up) {
         return function() {
-            console.log("ON VOTE CHANGE !!");
             const newCount = up ? this.props.comment.voteCount + 1 : this.props.comment.voteCount - 1;
             this.props.updateComment(Object.assign({}, this.props.comment,
                 {voteCount: newCount, dateLastUpdated: new Date()}), "voteCount");

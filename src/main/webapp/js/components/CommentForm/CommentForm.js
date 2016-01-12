@@ -2,6 +2,9 @@ import React from 'react';
 import ValidatableField from './ValidatableField';
 import SubmitStatus from './SubmitStatus';
 
+/**
+ * Form to create new comments.
+ */
 class CommentForm extends React.Component {
     constructor(props) {
         super(props);
@@ -26,10 +29,6 @@ class CommentForm extends React.Component {
      * @param nextProps
      */
     componentWillReceiveProps(nextProps) {
-        console.log("CommmentForm componentWillReceiveProps");
-        console.log(this.props.serverResponse);
-        console.log(nextProps);
-
         if (nextProps.serverResponse.status === 'error') {
             // prevents timeout error from displaying after error is displayed
             // we first wait for db error, if no db error then wait for timeout response.
@@ -155,8 +154,6 @@ class CommentForm extends React.Component {
     }
 
     render() {
-        console.log("CommentForm render");
-
         return (
             <form className="well well-sm margin-top-sm">
                 <ValidatableField label="Author" id="authorInput" type="text" placeholder="Author"
