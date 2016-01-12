@@ -1,6 +1,7 @@
 import React from 'react';
 import {SimpleSelect} from 'react-selectize';
 import moment from 'moment';
+import CommentUtil from '../utils';
 
 /**
  * Uses react-selectize to create a searchable drop down list of authors to search for.
@@ -79,7 +80,7 @@ class AuthorFilterSelector extends React.Component {
                         return (
                         <div id="authorNameFilterOption" className="simple-option">
                             <div>
-                                <p>{item.label}</p>
+                                <p>{CommentUtil.capitalize(item.label)}</p>
                                 <p>{item.totalComments} {item.totalComments > 1 ? "comments" : "comment"}</p>
                                 <p>Last comment created {item.timeAgoSinceLastCreatedComment}</p>
                             </div>

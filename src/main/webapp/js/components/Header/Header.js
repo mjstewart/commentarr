@@ -13,7 +13,7 @@ class Header extends React.Component {
 
     componentDidMount() {
         $.ajax({
-            url: 'https://api.github.com/repos/mjstewart/TestingApp01',
+            url: 'https://api.github.com/repos/mjstewart/commentarr',
             dataType: 'json',
             cache: false,
             success: data => {
@@ -30,7 +30,7 @@ class Header extends React.Component {
     }
 
     openGitHubRepo() {
-        window.open('https://github.com/mjstewart/TestingApp01', '_blank')
+        window.open('https://github.com/mjstewart/commentarr', '_blank')
     }
 
     render() {

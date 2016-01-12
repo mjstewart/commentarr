@@ -6,10 +6,6 @@ apply plugin: 'war'
 
 sourceCompatibility = 1.8
 
-project.ext {
-    wildflyHome = '/opt/wildfly-9.0.2.Final'
-}
-
 repositories {
     mavenCentral()
 }

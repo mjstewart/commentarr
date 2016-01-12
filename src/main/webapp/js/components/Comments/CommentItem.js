@@ -2,6 +2,8 @@ import React from 'react';
 import CommentVotingActions from './CommentVotingActions';
 import CommentEditActions from './CommentEditActions';
 import moment from 'moment';
+import $ from 'jquery';
+import CommentUtil from '../utils';
 
 class CommentItem extends React.Component {
 
@@ -89,7 +91,7 @@ class CommentItem extends React.Component {
         let date = moment(comment.dateCreated);
 
         return {
-            fullFormat: date.format("dddd, MMMM Do YYYY, h:mm:ss a"),
+            fullFormat: date.format("dddd, MMMM Do YYYY, h:mm a"),
             lastUpdatedTimeAgo: moment(comment.dateLastUpdated).fromNow()
         }
     }
@@ -98,6 +100,8 @@ class CommentItem extends React.Component {
     render() {
         const dateStats = this.getDateStats();
         const {comment} = this.props;
+        console.log("SCREEN SIZE???????????????");
+        console.log($(window).width());
 
         return (
             <div className="panel panel-default">
@@ -114,7 +118,7 @@ class CommentItem extends React.Component {
                     </div>
                     {this.props.comment.reports >= this.props.commentUnderReviewThreshold ?
                         (<div id="under-moderator-review" className="row">
-                            <div className="col-lg-9 col-md-9 col-sm-7 col-xs-7">
+                            <div className="col-lg-12 col-md-12 col-sm-12 col-xs-12">
                                 <span className="glyphicon glyphicon-time margin-right-xs"></span>
                                 <p>Comment is under moderator review</p>
                             </div>
@@ -124,7 +128,7 @@ class CommentItem extends React.Component {
                     <textarea id="message-textarea" defaultValue={comment.message}></textarea>
                     <div className="margin-top-sm top-border message-metadata">
                         <span>Posted on {dateStats.fullFormat}</span>
-                        <span className="pull-right">By {comment.author}</span>
+                        <span className="pull-right">By {CommentUtil.capitalize(comment.author)}</span>
                         <p><span className="lighter-text">(Last updated {dateStats.lastUpdatedTimeAgo})</span></p>
                     </div>
                 </div>

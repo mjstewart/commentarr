@@ -15,6 +15,8 @@ import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 /**
+ * Mock comments using List of json strings rather than a database for testing.
+ *
  * Created by matt on 12/28/15.
  */
 @ApplicationScoped
@@ -25,15 +27,14 @@ public class MockComments {
 
     public MockComments() {
         comments = new ArrayList<>();
-        // String comment1 = "{'id':1,'author':'matt','title':'title 1','message':'comment 1 message','dateCreated':'3/11/2015','voteCount':13,'reports':2}";
-        //String comment2 = "{\"id\":2,\"author\":\"sara\",\"title\":\"title 2\",\"message\":\"comment 2 message\",\"dateCreated\":\"13/4/2013\",\"voteCount\":31,\"reports\":0}";
 
         JsonObject build1 = Json.createObjectBuilder()
                 .add("id", 1)
                 .add("author", "matt")
                 .add("title", "title 1")
                 .add("message", "comment 1 message")
-                .add("dateCreated", "3/11/2015")
+                .add("dateCreated", "2016-01-10T04:52:42.344Z")
+                .add("dateLastUpdated", "2016-01-10T04:55:42.344Z")
                 .add("voteCount", "13")
                 .add("reports", "2")
                 .build();
@@ -43,14 +44,14 @@ public class MockComments {
                 .add("author", "sara")
                 .add("title", "title 2")
                 .add("message", "comment 2 message")
-                .add("dateCreated", "4/2/1997")
+                .add("dateCreated", "2016-01-12T02:52:42.344Z")
+                .add("dateLastUpdated", "2016-01-12T03:52:42.344Z")
                 .add("voteCount", "102")
                 .add("reports", "19")
                 .build();
 
         comments.add(build1.toString());
         comments.add(build2.toString());
-       // comments.add(comment2);
     }
 
 
@@ -120,21 +121,5 @@ public class MockComments {
     public static void main(String[] args) {
 
         MockComments mockComments = new MockComments();
-
-
-        JsonObject build = Json.createObjectBuilder()
-                .add("id", 1)
-                .add("author", "matt")
-                .add("title", "title 1")
-                .add("message", "comment 1 message")
-                .add("dateCreated", "3/11/2015")
-                .add("voteCount", "13")
-                .add("reports", "2")
-                .build();
-        String s = build.toString();
-        System.out.println(s);
-
-        System.out.println();
-
     }
 }

@@ -13,6 +13,8 @@ import java.io.IOException;
 import java.util.List;
 
 /**
+ * Handles client events.
+ *
  * Created by Matt Stewart on 02/January/2016.
  */
 public class CommentEventHandler {
@@ -43,15 +45,16 @@ public class CommentEventHandler {
                     .add("comments", commentsJson)
                     .build();
             sessionHandler.sendMessage(session, subscribeReply.toString());
-
-            System.out.println("onSubscribeComments -- comments sending back to client are");
-            System.out.println(commentsJson);
         } catch (MongoException e) {
-            System.out.println("IN onSubscribeComments but error " + e.getMessage());
             sendDBOfflineError(session, "subscribe comments", null);
         }
     }
 
+    /**
+     * Retrieves all comments and sends them back to the session.
+     *
+     * @param session the session to send the comments back to.
+     */
     public void onGetAllComments(Session session) {
         try {
             List<Comment> comments = repository.getAll();
@@ -61,9 +64,6 @@ public class CommentEventHandler {
                     .add("comments", commentsJson)
                     .build();
             sessionHandler.sendMessage(session, allCommentsReply.toString());
-
-            System.out.println("onGetAllComments -- comments sending back to client are");
-            System.out.println(commentsJson);
         } catch (MongoException e) {
             System.out.println("IN onGetAllComments but error " + e.getMessage());
             sendDBOfflineError(session, "comment getAll", null);
@@ -82,10 +82,7 @@ public class CommentEventHandler {
     public void onCommentCreate(Session session, JsonObject data) {
         try {
             Comment comment = objectMapper.readValue(data.toString(), Comment.class);
-            // validate here I guess?
-
-            System.out.println("CommentEventHandler onCommentCreate");
-            System.out.println(comment);
+            // server side validation would be performed here.
 
             if (repository.save(comment)) {
                 JsonObject commentCreatedReply = Json.createObjectBuilder()
@@ -115,6 +112,7 @@ public class CommentEventHandler {
     }
 
     /**
+     * Updates an existing comment.
      *
      * @param session who to send reply back to
      * @param data JsonObject containing 2 keys, updateField and comment which is an object type
@@ -123,8 +121,6 @@ public class CommentEventHandler {
         Comment comment = null;
         try {
             comment = objectMapper.readValue(data.getJsonObject("comment").toString(), Comment.class);
-            System.out.println("in onUpdateComment");
-            System.out.println(comment);
             if (repository.update(comment)) {
                 JsonObject commentUpdatedReply = Json.createObjectBuilder()
                         .add("event", "comment update")
@@ -145,6 +141,7 @@ public class CommentEventHandler {
     }
 
     /**
+     * Deletes an existing comment.
      *
      * @param session who to send reply back to
      * @param jsonComment JsonObject which is the comment
@@ -153,8 +150,6 @@ public class CommentEventHandler {
         Comment comment = null;
         try {
             comment = objectMapper.readValue(jsonComment.toString(), Comment.class);
-            System.out.println("in onDeleteComment");
-            System.out.println(comment);
             if (repository.delete(comment)) {
                 JsonObject commentDeleteReply = Json.createObjectBuilder()
                         .add("event", "comment delete")
@@ -174,27 +169,50 @@ public class CommentEventHandler {
     }
 
 
-
-
+    /**
+     * Convenience method to convert an object into Json using Jackson
+     *
+     * @param o the Object to translate
+     * @return json String
+     */
     public static String toJSONString(Object o) {
         ObjectMapper mapper = new ObjectMapper();
         try {
             return mapper.writeValueAsString(o);
         } catch (JsonProcessingException e) {
-            System.out.println(e.getMessage());
+            System.out.println("toJSONString error:" + e.getMessage());
             return null;
         }
     }
 
+    /**
+     * Sends database offline error to session.
+     *
+     * @param session the session to send the error to.
+     * @param performingAction action being performed at the type such as 'comment delete'
+     * @param commentId id of the comment being handled at the time of the error.
+     */
     private void sendDBOfflineError(Session session, String performingAction, String commentId) {
         sendError(session, "database offline", performingAction, "Database is offline", commentId);
     }
 
+    /**
+     * Sends database modification error to session.
+     * This will occur a comment cant be saved or modified.
+     *
+     * @param session the session to send the error to.
+     * @param performingAction action being performed at the type such as 'comment delete'
+     * @param reason more detail on the error
+     * @param commentId id of the comment being handled at the time of the error.
+     */
     private void sendDBModifyError(Session session, String performingAction, String reason, String commentId) {
         sendError(session, "database modify", performingAction, reason, commentId);
     }
 
     /**
+     * Sends error to the supplied session.
+     *
+     * commentId can be set to null if it doesn't apply such as when getting a collection from the database.
      *
      * @param session who to send message to
      * @param errorEvent the major event to identify error by such as 'database offline'
@@ -220,14 +238,12 @@ public class CommentEventHandler {
                     .add("commentId", commentId)
                     .build();
         }
-
-        System.out.println("Sending Error of");
-        System.out.println(errorReply.toString());
         sessionHandler.sendMessage(session, errorReply.toString());
     }
 
 
     /**
+     * Sends the error to the supplied session.
      *
      * @param session who to send message to
      * @param errorEvent the major event to identify error by such as 'database offline'
@@ -237,7 +253,4 @@ public class CommentEventHandler {
     private void sendError(Session session, String errorEvent, String performingAction, String reason) {
         sendError(session, errorEvent, performingAction, reason, null);
     }
-
-
-
 }

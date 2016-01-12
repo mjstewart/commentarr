@@ -31,32 +31,25 @@ public class CommentWebSocketServer {
 
     @OnOpen
     public void onOpen(Session session, EndpointConfig config) {
-        System.out.println("server onOpen -> " + session.getId());
         sessionHandler.addSession(session);
     }
 
     @OnClose
     public void onClose(Session session) {
-        System.out.println("server onClose removing from all sessions-> " + session.getId());
         sessionHandler.removeAll(session);
     }
 
     @OnError
     public void onError(Session session, Throwable error) {
-        System.out.println("server on error " + error.getClass());
-        System.out.println("server onError -> " + session.getId() + " error=" + error.getMessage());
+        System.out.println("onError: session=" + session.getId() + " ,error=" + error.getMessage());
     }
 
     @OnMessage
     public void onMessage(String message, Session session) {
-        System.out.println("server onMessage");
-
         // Every incoming message will have an event key. Individual event handlers will extract any other keys.
         JsonReader reader = Json.createReader(new StringReader(message));
         JsonObject jsonObject = reader.readObject();
         String event = jsonObject.getString("event");
-
-        System.out.println("event: " + event);
 
         switch (event) {
             case "subscribe comments":
@@ -68,16 +61,13 @@ public class CommentWebSocketServer {
                 break;
             case "comment update":
                 data = jsonObject.getJsonObject("data");
-                System.out.println("comment update received");
                 commentEventHandler.onUpdateComment(session, data);
                 break;
             case "comment delete":
                 data = jsonObject.getJsonObject("data");
-                System.out.println("comment delete received");
                 commentEventHandler.onDeleteComment(session, data);
                 break;
             case "comment getAll":
-                System.out.println("comment getAll received");
                 commentEventHandler.onGetAllComments(session);
                 break;
 
