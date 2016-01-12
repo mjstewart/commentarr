@@ -4,6 +4,8 @@ version '1.0-SNAPSHOT'
 apply plugin: 'java'
 apply plugin: 'war'
 
+project.ext.warArchiveName = "commentarr"
+
 sourceCompatibility = 1.8
 
 repositories {
@@ -21,8 +23,45 @@ dependencies {
     compile 'com.fasterxml.jackson.core:jackson-annotations:2.7.0-rc2'
 }
 
+buildscript {
+    repositories {
+        jcenter()
+    }
+
+    dependencies {
+        classpath 'org.hidetake:gradle-ssh-plugin:1.1.4'
+    }
+}
+
+
+apply plugin: 'org.hidetake.ssh'
+
+ssh.settings {
+    knownHosts = allowAnyHosts
+}
+
+remotes {
+    devServer {
+        host = devServerIP
+        user = devServerUser
+        agent = true
+        identity = file(identityPath);
+    }
+}
+
+task deploy(dependsOn: war) << {
+    // script on server is executed once war is transferred into correct directory.
+    ssh.run {
+        session(remotes.devServer) {
+            put from: "build/libs/${warArchiveName}.war", into: 'war-deployments'
+            execute 'wildfly-deployment'
+        }
+    }
+}
+
+
 war {
-    archiveName 'commentarr.war'
+    archiveName "${warArchiveName}.war"
     exclude('node_modules')
 }
 
