@@ -60,7 +60,6 @@ class Socket {
     onMessage(event) {
         try {
             const data = JSON.parse(event.data);
-
             // data.event is used to lookup which registered listener to call
             this.ee.emit(data.event, data);
         } catch (error) {

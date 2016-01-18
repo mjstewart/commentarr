@@ -36,7 +36,6 @@ public class CommentEventHandler {
      */
     public void onSubscribeComments(Session session) {
         sessionHandler.addCommentSubscriber(session);
-        System.out.println("calling getAll query");
         try {
             List<Comment> comments = repository.getAll();
             String commentsJson = toJSONString(comments);
@@ -65,7 +64,6 @@ public class CommentEventHandler {
                     .build();
             sessionHandler.sendMessage(session, allCommentsReply.toString());
         } catch (MongoException e) {
-            System.out.println("IN onGetAllComments but error " + e.getMessage());
             sendDBOfflineError(session, "comment getAll", null);
         }
     }
@@ -92,8 +90,6 @@ public class CommentEventHandler {
                         .build();
 
                 String commentReply = toJSONString(comment);
-                System.out.println("Sending back this comment to all subscribers?");
-                System.out.println(commentReply);
                 JsonObject addCommentReply = Json.createObjectBuilder()
                         .add("event", "comment add")
                         .add("comment", commentReply)
@@ -180,7 +176,6 @@ public class CommentEventHandler {
         try {
             return mapper.writeValueAsString(o);
         } catch (JsonProcessingException e) {
-            System.out.println("toJSONString error:" + e.getMessage());
             return null;
         }
     }
