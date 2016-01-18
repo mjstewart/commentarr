@@ -1,7 +1,10 @@
 # commentarr
 Is a personal project I developed to learn/explore a variety of frontend/backend technologies with the primary focus on creating a production ready application that is intuitive for the user.
 
-[Please checkout my live demo on YouTube](https://github.com/furqanZafar/react-selectize)
+[Please check out my live demo on YouTube](https://www.youtube.com/watch?v=M-Rp_Aa4aSA&list=PLhdEaT6EIivpelbIn9ePcGxBykXnvmzGl&index=2)
+
+[View part 2 (implementation overview)](https://www.youtube.com/watch?v=QRV2GdkV-tk&index=1&list=PLhdEaT6EIivpelbIn9ePcGxBykXnvmzGl)
+
 
 ## What's the application do?
 Comentarr is a single page web application allowing users to create new comments which get displayed in a comment feed.
