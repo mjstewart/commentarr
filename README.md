@@ -48,6 +48,6 @@ gulp made development faster through running tasks which transformed javascript 
 I used gradle to build the war and [gradle-ssh-plugin](https://gradle-ssh-plugin.github.io/) to automatically deploy to wildfly running on a ubuntu server located on my home network. 
 
 ## How it all works
-[View my part 2 YouTube video](https://github.com/furqanZafar/react-selectize)
+[View my part 2 YouTube video](https://www.youtube.com/watch?v=QRV2GdkV-tk&index=1&list=PLhdEaT6EIivpelbIn9ePcGxBykXnvmzGl)
 
   
