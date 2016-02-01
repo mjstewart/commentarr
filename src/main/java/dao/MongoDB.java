@@ -25,16 +25,15 @@ public enum MongoDB {
     private final String dbName = "commentarr";
 
     MongoDB() {
-        System.out.println("In MongoDB connection Constructor");
         MongoClientOptions mongoClientOptions = MongoClientOptions.builder().serverSelectionTimeout(10000).build();
         mongoClient = new MongoClient(new ServerAddress(host, port), mongoClientOptions);
-        System.out.println(mongoClient.getMongoClientOptions());
+
         Morphia morphia = new Morphia();
         morphia.mapPackage("domain");
+
         datastore = morphia.createDatastore(mongoClient, dbName);
         datastore.ensureIndexes();
     }
-
 
     public Datastore getDatastore() {
         return datastore;
@@ -57,7 +56,6 @@ public enum MongoDB {
             }
         }
     }
-
 
     public void close() {
         mongoClient.close();

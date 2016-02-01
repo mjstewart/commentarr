@@ -70,7 +70,6 @@ public class CommentWebSocketServer {
             case "comment getAll":
                 commentEventHandler.onGetAllComments(session);
                 break;
-
         }
     }
 }
