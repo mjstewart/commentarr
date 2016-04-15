@@ -1,5 +1,5 @@
 # commentarr
-Is a personal project I developed to learn/explore a variety of frontend/backend technologies with the primary focus on creating a production ready application that is intuitive for the user.
+Is a personal project I developed to learn/explore a variety of frontend/backend technologies while having enough depth to challenge myself in new workflows and web application architechture.
 
 [Please check out my live demo on YouTube](https://www.youtube.com/watch?v=M-Rp_Aa4aSA&list=PLhdEaT6EIivpelbIn9ePcGxBykXnvmzGl&index=2)
 
@@ -22,8 +22,6 @@ The client and server communicate using websockets resulting in users receiving 
 - nodejs/npm for package management
 - gulp
 - gradle with a few extra plugins
-
-gulp made development faster through running tasks which transformed javascript ES6 and bundled the output using browserify which was automatically loaded into the browser using browser sync. 
 
 ### Front end
 * react js
@@ -49,5 +47,3 @@ I used gradle to build the war and [gradle-ssh-plugin](https://gradle-ssh-plugin
 
 ## How it all works
 [View my part 2 YouTube video](https://www.youtube.com/watch?v=QRV2GdkV-tk&index=1&list=PLhdEaT6EIivpelbIn9ePcGxBykXnvmzGl)
-
-  
