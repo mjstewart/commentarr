@@ -47,3 +47,6 @@ I used gradle to build the war and [gradle-ssh-plugin](https://gradle-ssh-plugin
 
 ## How it all works
 [View my part 2 YouTube video](https://www.youtube.com/watch?v=QRV2GdkV-tk&index=1&list=PLhdEaT6EIivpelbIn9ePcGxBykXnvmzGl)
+
+## Reflections
+I now see the benefit of using a redux style architecture to manage state.
