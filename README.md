@@ -19,8 +19,7 @@ The client and server communicate using websockets resulting in users receiving 
 ## Technologies 
 
 ### Workflow tools
-- nodejs/npm for package management
-- gulp
+- nodejs/npm/gulp
 - gradle with a few extra plugins
 
 ### Front end
@@ -49,4 +48,4 @@ I used gradle to build the war and [gradle-ssh-plugin](https://gradle-ssh-plugin
 [View my part 2 YouTube video](https://www.youtube.com/watch?v=QRV2GdkV-tk&index=1&list=PLhdEaT6EIivpelbIn9ePcGxBykXnvmzGl)
 
 ## Reflections
-I now see the benefit of using a redux style architecture to manage state.
+Managing state is key, an area to improve upon in the future.
