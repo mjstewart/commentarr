@@ -1,7 +1,7 @@
 # commentarr
 Is a personal project I developed to learn/explore a variety of frontend/backend technologies while having enough depth to challenge myself in new workflows and web application architechture.
 
-[Please check out my live demo on YouTube](https://www.youtube.com/watch?v=M-Rp_Aa4aSA&list=PLhdEaT6EIivpelbIn9ePcGxBykXnvmzGl&index=2)
+[Live demo on YouTube](https://www.youtube.com/watch?v=M-Rp_Aa4aSA&list=PLhdEaT6EIivpelbIn9ePcGxBykXnvmzGl&index=2)
 
 [View part 2 (implementation overview)](https://www.youtube.com/watch?v=QRV2GdkV-tk&index=1&list=PLhdEaT6EIivpelbIn9ePcGxBykXnvmzGl)
 
@@ -19,13 +19,13 @@ The client and server communicate using websockets resulting in users receiving 
 ## Technologies 
 
 ### Workflow tools
-- nodejs/npm/gulp
-- gradle with a few extra plugins
+- gulp
+- gradle
 
-### Front end
+### Frontend
 * react js
 * Immutable js
-* javascript ES6
+* ES6
 * node js (EventEmitter)
 * jquery
 * twitter bootstrap
@@ -33,7 +33,7 @@ The client and server communicate using websockets resulting in users receiving 
 * [react-selectize](https://github.com/furqanZafar/react-selectize)
 * animate css
 
-### Back end
+### Backend
 * Java EE 7 websockets		  
 * JSR 353 Java API for Processing JSON		
 * jackson (transforming between java entities and json)		
@@ -42,10 +42,10 @@ The client and server communicate using websockets resulting in users receiving 
 * Wildfly application server
 
 ## Deployment
-I used gradle to build the war and [gradle-ssh-plugin](https://gradle-ssh-plugin.github.io/) to automatically deploy to wildfly running on a ubuntu server located on my home network. 
+Gradle to build the war and [gradle-ssh-plugin](https://gradle-ssh-plugin.github.io/) to automatically deploy to wildfly running on a ubuntu server located on my home network. 
 
 ## How it all works
 [View my part 2 YouTube video](https://www.youtube.com/watch?v=QRV2GdkV-tk&index=1&list=PLhdEaT6EIivpelbIn9ePcGxBykXnvmzGl)
 
 ## Reflections
-Managing state is key, an area to improve upon in the future.
+Managing state is key, I now understand why redux was created.
