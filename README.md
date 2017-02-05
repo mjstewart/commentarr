@@ -1,4 +1,3 @@
-#  What's the application do
 CRUD web app to practice front/backend development 
 
 [Live demo on YouTube](https://www.youtube.com/watch?v=M-Rp_Aa4aSA&list=PLhdEaT6EIivpelbIn9ePcGxBykXnvmzGl&index=2)
