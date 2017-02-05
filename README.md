@@ -27,8 +27,7 @@ Websockets are used to receive real time notifications for any new comment activ
 * animate css
 
 ### Backend
-* Java EE 7 websockets		  
-* JSR 353 Java API for Processing JSON		
+* Java EE 7 websockets		  	
 * jackson 
 * mongo		   
 * morphia (java entity to mongo mapping) 		
