@@ -5,7 +5,7 @@ CRUD web app to practice front/backend development
 Users can perform a variety of editing actions 
  * up/down voting 
  * deleting and reporting comments to be investigated by moderators 
- * Sort/filter the way the comment feed is displayed
+ * Sort/filter
 
 Websockets are used to receive real time notifications for any new comment activity.
 
