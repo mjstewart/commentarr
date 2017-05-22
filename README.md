@@ -32,6 +32,3 @@ Websockets are used to receive real time notifications for any new comment activ
 
 ## Deployment
 Gradle to build the war and [gradle-ssh-plugin](https://gradle-ssh-plugin.github.io/) for deployment into wildfly. 
-
-## Review
-A few years later, this is very out of date
