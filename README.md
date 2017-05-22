@@ -1,4 +1,4 @@
-CRUD web app to practice front/backend development 
+crud app 
 
 [Live demo](https://www.youtube.com/watch?v=M-Rp_Aa4aSA&list=PLhdEaT6EIivpelbIn9ePcGxBykXnvmzGl&index=2)
 
@@ -34,4 +34,4 @@ Websockets are used to receive real time notifications for any new comment activ
 * Wildfly
 
 ## Deployment
-Gradle to build the war and [gradle-ssh-plugin](https://gradle-ssh-plugin.github.io/) to automatically deploy to wildfly running on a ubuntu server located on my home network. 
+Gradle to build the war and [gradle-ssh-plugin](https://gradle-ssh-plugin.github.io/) for deployment into wildfly. 
