@@ -4,8 +4,6 @@ Websockets are used to receive real time notifications for any new comment activ
 
 [Live demo](https://www.youtube.com/watch?v=M-Rp_Aa4aSA&list=PLhdEaT6EIivpelbIn9ePcGxBykXnvmzGl&index=2)
 
-Websockets are used to receive real time notifications for any new comment activity.
-
 ## Technologies 
 
 ### Workflow tools
